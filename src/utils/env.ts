@@ -1,3 +1,5 @@
+import process from 'node:process'
+
 export function getEnvFilePath() {
   const isDev = process.env.NODE_ENV === 'dev'
   const envFilePath = ['.env']

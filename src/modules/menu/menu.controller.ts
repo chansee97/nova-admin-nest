@@ -1,3 +1,7 @@
+import type { CreateMenuDto } from './dto/create-menu.dto'
+import type { UpdateMenuDto } from './dto/update-menu.dto'
+import type { MenuService } from './menu.service'
+import type { SearchQuery } from '@/common/dto/page.dto'
 import {
   Body,
   Controller,
@@ -7,10 +11,6 @@ import {
   Patch,
   Post,
 } from '@nestjs/common'
-import { MenuService } from './menu.service'
-import { CreateMenuDto } from './dto/create-menu.dto'
-import { UpdateMenuDto } from './dto/update-menu.dto'
-import { SearchQuery } from '@/common/dto/page.dto'
 
 @Controller('menu')
 export class MenuController {

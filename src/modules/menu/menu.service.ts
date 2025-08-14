@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import type { Repository } from 'typeorm'
 import type { CreateMenuDto } from './dto/create-menu.dto'
 import type { UpdateMenuDto } from './dto/update-menu.dto'
-import { Menu } from './entities/menu.entity'
-import { ApiException } from '@/common/filters'
-import { ApiErrorCode } from '@/common/enum'
 import type { SearchQuery } from '@/common/dto/page.dto'
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { ApiErrorCode } from '@/common/enum'
+import { ApiException } from '@/common/filters'
+import { Menu } from './entities/menu.entity'
 
 @Injectable()
 export class MenuService {

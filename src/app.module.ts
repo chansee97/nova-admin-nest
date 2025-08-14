@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common'
-import { TypeOrmModule } from '@nestjs/typeorm'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppController } from './app.controller'
 
+import configuration from './config/configuration'
+
+import { AuthModule } from './modules/auth/auth.module'
+import { MenuModule } from './modules/menu/menu.module'
+import { PermissionModule } from './modules/permission/permission.module'
+import { RoleModule } from './modules/role/role.module'
 /* 业务模块 */
 import { UserModule } from './modules/user/user.module'
-
 /* 辅助工具 */
 import { getEnvFilePath } from './utils/env'
-import { AuthModule } from './modules/auth/auth.module'
-import { RoleModule } from './modules/role/role.module'
-import { PermissionModule } from './modules/permission/permission.module'
-import { MenuModule } from './modules/menu/menu.module'
-import configuration from './config/configuration'
 
 @Module({
   imports: [

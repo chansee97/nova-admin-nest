@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import type { Repository } from 'typeorm'
 import type { CreatePermissionDto } from './dto/create-permission.dto'
 import type { UpdatePermissionDto } from './dto/update-permission.dto'
-import { Permission } from './entities/permission.entity'
-import { ApiException } from '@/common/filters'
-import { ApiErrorCode } from '@/common/enum'
 import type { SearchQuery } from '@/common/dto/page.dto'
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { ApiErrorCode } from '@/common/enum'
+import { ApiException } from '@/common/filters'
+import { Permission } from './entities/permission.entity'
 
 @Injectable()
 export class PermissionService {

@@ -1,3 +1,9 @@
+import type { CreateRoleDto } from './dto/create-role.dto'
+import type { SetMenusDto } from './dto/set-menus.dto'
+import type { SetPermissionsDto } from './dto/set-permisssions.dto'
+import type { UpdateRoleDto } from './dto/update-role.dto'
+import type { RoleService } from './role.service'
+import type { SearchQuery } from '@/common/dto'
 import {
   Body,
   Controller,
@@ -8,12 +14,6 @@ import {
   Post,
   Query,
 } from '@nestjs/common'
-import { RoleService } from './role.service'
-import { CreateRoleDto } from './dto/create-role.dto'
-import { UpdateRoleDto } from './dto/update-role.dto'
-import { SetMenusDto } from './dto/set-menus.dto'
-import { SetPermissionsDto } from './dto/set-permisssions.dto'
-import { SearchQuery } from '@/common/dto'
 
 @Controller('role')
 export class RoleController {

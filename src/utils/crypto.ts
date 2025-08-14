@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto'
 import { Buffer } from 'node:buffer'
+import { createHash } from 'node:crypto'
 
 // 加密函数
 export function encryptData(data: any, algorithm = 'sha256') {

@@ -1,3 +1,8 @@
+import type { CreateUserDto } from './dto/create-user.dto'
+import type { SetRoleDto } from './dto/set-roles.dto'
+import type { UpdateUserDto } from './dto/update-user.dto'
+import type { UserService } from './user.service'
+import type { SearchQuery } from '@/common/dto'
 import {
   Body,
   Controller,
@@ -8,11 +13,6 @@ import {
   Post,
   Query,
 } from '@nestjs/common'
-import { UserService } from './user.service'
-import { CreateUserDto } from './dto/create-user.dto'
-import { UpdateUserDto } from './dto/update-user.dto'
-import { SetRoleDto } from './dto/set-roles.dto'
-import { SearchQuery } from '@/common/dto'
 import { Permissions, Public } from '@/common/decorators'
 
 @Controller('user')

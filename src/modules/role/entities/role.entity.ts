@@ -7,8 +7,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
-import { Permission } from '@/modules/permission/entities/permission.entity'
 import { Menu } from '@/modules/menu/entities/menu.entity'
+import { Permission } from '@/modules/permission/entities/permission.entity'
 
 @Entity()
 export class Role {

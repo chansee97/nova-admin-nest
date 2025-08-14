@@ -1,15 +1,16 @@
+import type { Repository } from 'typeorm'
+import type { CreateUserDto } from './dto/create-user.dto'
+import type { SetRoleDto } from './dto/set-roles.dto'
+import type { UpdateUserDto } from './dto/update-user.dto'
+import type { SearchQuery } from '@/common/dto/page.dto'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { In, Repository } from 'typeorm'
-import { Role } from '../role/entities/role.entity'
-import type { CreateUserDto } from './dto/create-user.dto'
-import type { UpdateUserDto } from './dto/update-user.dto'
-import type { SetRoleDto } from './dto/set-roles.dto'
-import { User } from './entities/user.entity'
-import type { SearchQuery } from '@/common/dto/page.dto'
-import { encryptData } from '@/utils/crypto'
+import { In } from 'typeorm'
 import { ApiErrorCode } from '@/common/enum'
 import { ApiException } from '@/common/filters'
+import { encryptData } from '@/utils/crypto'
+import { Role } from '../role/entities/role.entity'
+import { User } from './entities/user.entity'
 
 @Injectable()
 export class UserService {
@@ -26,13 +27,15 @@ export class UserService {
       where: { username },
     })
 
-    if (existUser) throw new ApiException('用户已存在', ApiErrorCode.USER_EXIST)
+    if (existUser)
+      throw new ApiException('用户已存在', ApiErrorCode.USER_EXIST)
 
     try {
       const newUser = this.userRepository.create(createUserDto)
       await this.userRepository.save(newUser)
       return '注册成功'
-    } catch (error: unknown) {
+    }
+    catch (error: unknown) {
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
@@ -140,11 +143,12 @@ export class UserService {
       relations: ['roles', 'roles.permissions'],
     })
     if (user) {
-      const permissions = user.roles.flatMap((role) => role.permissions)
-      const permissionNames = permissions.map((item) => item.name)
+      const permissions = user.roles.flatMap(role => role.permissions)
+      const permissionNames = permissions.map(item => item.name)
 
       return [...new Set(permissionNames)]
-    } else {
+    }
+    else {
       return []
     }
   }

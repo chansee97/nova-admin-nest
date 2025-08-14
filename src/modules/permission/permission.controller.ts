@@ -1,3 +1,7 @@
+import type { CreatePermissionDto } from './dto/create-permission.dto'
+import type { UpdatePermissionDto } from './dto/update-permission.dto'
+import type { PermissionService } from './permission.service'
+import type { SearchQuery } from '@/common/dto'
 import {
   Body,
   Controller,
@@ -8,10 +12,6 @@ import {
   Post,
   Query,
 } from '@nestjs/common'
-import { PermissionService } from './permission.service'
-import { CreatePermissionDto } from './dto/create-permission.dto'
-import { UpdatePermissionDto } from './dto/update-permission.dto'
-import { SearchQuery } from '@/common/dto'
 
 @Controller('permission')
 export class PermissionController {

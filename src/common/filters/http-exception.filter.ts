@@ -1,7 +1,7 @@
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common'
+import type { Request, Response } from 'express'
 import { Catch, HttpException } from '@nestjs/common'
 import { isArray } from 'class-validator'
-import type { Request, Response } from 'express'
 import { logger } from '@/utils/logger'
 
 @Catch(HttpException)
@@ -21,7 +21,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     let message = (exception.getResponse() as any).message || exception.message
 
-    if (isArray(message)) message = message[0]
+    if (isArray(message))
+      message = message[0]
 
     response.status(status).json({
       code: status,
