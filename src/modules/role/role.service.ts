@@ -32,7 +32,7 @@ export class RoleService {
     if (existRole)
       throw new ApiException('角色已存在', ApiErrorCode.SERVER_ERROR)
 
-    this.roleRepository.save(createRoleDto)
+    await this.roleRepository.save(createRoleDto)
 
     return '角色新增成功'
   }
@@ -74,7 +74,7 @@ export class RoleService {
     // 检查是否存在
     await this.findOne(id)
 
-    this.roleRepository.update(id, updateRoleDto)
+    await this.roleRepository.update(id, updateRoleDto)
     return '角色修改成功'
   }
 

@@ -27,15 +27,13 @@ export class UserService {
       where: { username },
     })
 
-    if (existUser)
-      throw new ApiException('用户已存在', ApiErrorCode.USER_EXIST)
+    if (existUser) throw new ApiException('用户已存在', ApiErrorCode.USER_EXIST)
 
     try {
       const newUser = this.userRepository.create(createUserDto)
       await this.userRepository.save(newUser)
       return '注册成功'
-    }
-    catch (error: unknown) {
+    } catch (error: unknown) {
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
@@ -130,14 +128,7 @@ export class UserService {
     return '删除成功'
   }
 
-  test(params) {
-    console.warn(
-      '🚀 ~ file: user.service.ts:109 ~ UserService ~ test ~ params:',
-      params,
-    )
-  }
-
-  async findPermissionNames(username) {
+  async findPermissionNames(username: string): Promise<string[]> {
     const user = await this.userRepository.findOne({
       where: { username },
       relations: ['roles', 'roles.permissions'],
@@ -147,8 +138,7 @@ export class UserService {
       const permissionNames = permissions.map(item => item.name)
 
       return [...new Set(permissionNames)]
-    }
-    else {
+    } else {
       return []
     }
   }

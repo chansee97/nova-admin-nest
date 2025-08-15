@@ -1,5 +1,5 @@
-import process from 'node:process'
 import { Module } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Role } from '../role/entities/role.entity'
@@ -12,7 +12,12 @@ import { UserService } from './user.service'
   providers: [UserService],
   imports: [
     TypeOrmModule.forFeature([User, Role]),
-    JwtModule.register({ secret: process.env.JWT_SECRET }),
+    JwtModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+      }),
+      inject: [ConfigService],
+    }),
   ],
   exports: [UserService],
 })

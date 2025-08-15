@@ -1,7 +1,7 @@
 import type { CreatePermissionDto } from './dto/create-permission.dto'
 import type { UpdatePermissionDto } from './dto/update-permission.dto'
-import type { PermissionService } from './permission.service'
 import type { SearchQuery } from '@/common/dto'
+import { PermissionService } from './permission.service'
 import {
   Body,
   Controller,

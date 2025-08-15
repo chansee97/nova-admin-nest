@@ -1,3 +1,5 @@
+import 'reflect-metadata'
+
 import { ValidationPipe } from '@nestjs/common/pipes'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
@@ -26,4 +28,7 @@ async function bootstrap() {
   const port = configService.get<number>('server.port')
   await app.listen(port)
 }
-bootstrap()
+bootstrap().catch(error => {
+  console.error('Application failed to start:', error)
+  process.exit(1)
+})

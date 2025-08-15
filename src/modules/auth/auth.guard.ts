@@ -1,9 +1,8 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
-import type { Reflector } from '@nestjs/core'
-
 import type { Request } from 'express'
-import type { AuthService } from './auth.service'
 import { Injectable } from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
+import { AuthService } from './auth.service'
 import { ApiErrorCode } from '@/common/enum'
 import { ApiException } from '@/common/filters'
 
@@ -19,19 +18,20 @@ export class JwtAuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ])
-    if (isPublic)
+    if (isPublic) {
       return true
+    }
 
     const request: Request = context.switchToHttp().getRequest()
     const token = this.extractTokenFromHeader(request)
 
-    if (!token)
+    if (!token) {
       throw new ApiException('未登录', ApiErrorCode.TOKEN_MISS)
+    }
 
     try {
       this.authService.verifyToken(token)
-    }
-    catch {
+    } catch {
       throw new ApiException('token验证失败', ApiErrorCode.TOKEN_INVALID)
     }
 

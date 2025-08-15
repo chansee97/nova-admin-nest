@@ -1,8 +1,8 @@
 import type { CreateUserDto } from './dto/create-user.dto'
 import type { SetRoleDto } from './dto/set-roles.dto'
 import type { UpdateUserDto } from './dto/update-user.dto'
-import type { UserService } from './user.service'
 import type { SearchQuery } from '@/common/dto'
+import { UserService } from './user.service'
 import {
   Body,
   Controller,
@@ -48,11 +48,5 @@ export class UserController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id)
-  }
-
-  @Post('test')
-  @Permissions('user:create')
-  test(@Body() testParams) {
-    return this.userService.test(testParams)
   }
 }

@@ -1,11 +1,22 @@
 {
-  // Disable the default formatter, use eslint instead
-  "prettier.enable": false,
-  "editor.formatOnSave": false,
-  // Auto fix
+  // NestJS 后端开发配置
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  // 格式化配置
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.enable": true,
+  "prettier.requireConfig": true,
+  // ESLint 配置
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "never"
+  },
+  // TypeScript 文件特定配置
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
   },
   // Silent the stylistic rules in you IDE, but still auto fix them
   "eslint.rules.customizations": [
@@ -60,28 +71,34 @@
       "fixable": true
     }
   ],
-  // Enable eslint for all supported languages
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    "vue",
-    "html",
-    "markdown",
-    "json",
-    "jsonc",
-    "yaml",
-    "toml",
-    "xml",
-    "gql",
-    "graphql",
-    "astro",
-    "svelte",
-    "css",
-    "less",
-    "scss",
-    "pcss",
-    "postcss"
-  ]
+  // Enable eslint for TypeScript and JavaScript only (NestJS focus)
+  "eslint.validate": ["javascript", "typescript"],
+  // NestJS 特定设置
+  "files.associations": {
+    "*.module.ts": "typescript",
+    "*.service.ts": "typescript",
+    "*.controller.ts": "typescript",
+    "*.guard.ts": "typescript",
+    "*.interceptor.ts": "typescript",
+    "*.middleware.ts": "typescript",
+    "*.pipe.ts": "typescript",
+    "*.decorator.ts": "typescript",
+    "*.entity.ts": "typescript",
+    "*.dto.ts": "typescript"
+  },
+  // 文件排除
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/coverage": true
+  },
+  // 搜索排除
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverage": true,
+    "**/*.log": true
+  }
 }

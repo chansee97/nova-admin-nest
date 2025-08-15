@@ -2,9 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppController } from './app.controller'
-
 import configuration from './config/configuration'
-
 import { AuthModule } from './modules/auth/auth.module'
 import { MenuModule } from './modules/menu/menu.module'
 import { PermissionModule } from './modules/permission/permission.module'
@@ -34,11 +32,7 @@ import { getEnvFilePath } from './utils/env'
           database: config.get<string>('database.name'),
           synchronize: true, // 是否自动同步实体文件,生产环境建议关闭
           autoLoadEntities: true, // 自动加载实体
-          poolSize: 10,
-          connectorPackage: 'mysql2',
-          extra: {
-            authPlugin: 'sha256_password',
-          },
+          logging: true, // 启用日志以便调试
         }
       },
       inject: [ConfigService],

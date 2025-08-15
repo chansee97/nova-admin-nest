@@ -10,8 +10,8 @@ export class ApiExceptionsFilter implements ExceptionFilter {
     const host = next.switchToHttp()
     const response = host.getResponse<Response>()
     const request = host.getRequest<Request>()
-    const status
-      = exception instanceof HttpException
+    const status =
+      exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR
 

@@ -2,8 +2,8 @@ import type { CreateRoleDto } from './dto/create-role.dto'
 import type { SetMenusDto } from './dto/set-menus.dto'
 import type { SetPermissionsDto } from './dto/set-permisssions.dto'
 import type { UpdateRoleDto } from './dto/update-role.dto'
-import type { RoleService } from './role.service'
 import type { SearchQuery } from '@/common/dto'
+import { RoleService } from './role.service'
 import {
   Body,
   Controller,

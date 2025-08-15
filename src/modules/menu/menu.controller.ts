@@ -1,7 +1,7 @@
 import type { CreateMenuDto } from './dto/create-menu.dto'
 import type { UpdateMenuDto } from './dto/update-menu.dto'
-import type { MenuService } from './menu.service'
 import type { SearchQuery } from '@/common/dto/page.dto'
+import { MenuService } from './menu.service'
 import {
   Body,
   Controller,

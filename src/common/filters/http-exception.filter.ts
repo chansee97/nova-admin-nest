@@ -19,10 +19,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
       exception.message,
     )
 
-    let message = (exception.getResponse() as any).message || exception.message
+    const response_data = exception.getResponse()
+    let message: string
 
-    if (isArray(message))
-      message = message[0]
+    if (
+      typeof response_data === 'object' &&
+      response_data !== null &&
+      'message' in response_data
+    ) {
+      const responseMessage = (response_data as { message: string | string[] })
+        .message
+      message = isArray(responseMessage) ? responseMessage[0] : responseMessage
+    } else {
+      message = exception.message
+    }
 
     response.status(status).json({
       code: status,
