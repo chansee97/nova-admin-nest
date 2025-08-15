@@ -48,11 +48,22 @@ export class UserService {
     }
 
     const [list, total] = await this.userRepository.findAndCount({
-      select: ['id', 'username', 'nickname', 'avatar', 'email', 'tel', 'notes'],
+      select: [
+        'id',
+        'username',
+        'nickName',
+        'avatar',
+        'email',
+        'phone',
+        'remark',
+        'deptId',
+      ],
+      relations: ['dept'], // 包含部门信息
       skip,
       take,
       where: {
-        deletedAt: null,
+        delFlag: 0,
+        userStatus: 1,
       },
     })
 
@@ -64,10 +75,18 @@ export class UserService {
 
   async findOne(id: number) {
     const user = await this.userRepository.findOne({
-      select: ['id', 'username', 'nickname', 'avatar', 'email', 'tel', 'notes'],
+      select: [
+        'id',
+        'username',
+        'nickName',
+        'avatar',
+        'email',
+        'phone',
+        'remark',
+      ],
       where: {
         id,
-        deletedAt: null,
+        delFlag: 0,
       },
       relations: ['roles'],
     })
@@ -82,13 +101,12 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: {
         username,
-        deletedAt: null,
+        delFlag: 0,
       },
     })
     if (!user)
       throw new ApiException('未找到该用户信息', ApiErrorCode.USER_NOTEXIST)
 
-    delete user.deletedAt
     return user
   }
 
@@ -131,15 +149,44 @@ export class UserService {
   async findPermissionNames(username: string): Promise<string[]> {
     const user = await this.userRepository.findOne({
       where: { username },
-      relations: ['roles', 'roles.permissions'],
+      relations: ['roles', 'roles.menus'],
     })
     if (user) {
-      const permissions = user.roles.flatMap(role => role.permissions)
-      const permissionNames = permissions.map(item => item.name)
+      const menus = user.roles.flatMap(role => role.menus)
+      const permissions = menus.map(menu => menu.perms)
 
-      return [...new Set(permissionNames)]
+      return [...new Set(permissions)]
     } else {
       return []
     }
+  }
+
+  // 获取用户菜单
+  async findUserMenus(username: string) {
+    const user = await this.userRepository.findOne({
+      where: { username },
+      relations: ['roles', 'roles.menus'],
+    })
+
+    if (user) {
+      const menus = user.roles.flatMap(role => role.menus)
+      const uniqueMenus = menus.filter(
+        (menu, index, self) => index === self.findIndex(m => m.id === menu.id),
+      )
+
+      return this.buildMenuTree(uniqueMenus)
+    } else {
+      return []
+    }
+  }
+
+  // 构建菜单树
+  private buildMenuTree(menus: any[], parentId: number | null = null): any[] {
+    return menus
+      .filter(menu => menu.parentId === parentId)
+      .map(menu => ({
+        ...menu,
+        children: this.buildMenuTree(menus, menu.id),
+      }))
   }
 }

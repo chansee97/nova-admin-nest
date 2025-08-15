@@ -16,13 +16,23 @@ export class MenuService {
   ) {}
 
   async create(createMenuDto: CreateMenuDto) {
-    const menuName = createMenuDto.menuName
+    // 检查权限标识符是否已存在
+    if (createMenuDto.perms) {
+      const existPermission = await this.menuRepository.findOne({
+        where: { perms: createMenuDto.perms },
+      })
+
+      if (existPermission)
+        throw new ApiException('权限标识符已存在', ApiErrorCode.SERVER_ERROR)
+    }
+
+    // 检查菜单名称是否已存在
     const existMenu = await this.menuRepository.findOne({
-      where: { menuName },
+      where: { menuName: createMenuDto.menuName },
     })
 
     if (existMenu)
-      throw new ApiException('菜单已存在', ApiErrorCode.SERVER_ERROR)
+      throw new ApiException('菜单名称已存在', ApiErrorCode.SERVER_ERROR)
 
     await this.menuRepository.save(createMenuDto)
     return '菜单新增成功'
@@ -40,11 +50,66 @@ export class MenuService {
     const [list, total] = await this.menuRepository.findAndCount({
       skip,
       take,
+      order: { sort: 'ASC', createTime: 'DESC' },
     })
     return {
       list,
       total,
     }
+  }
+
+  // 获取菜单树结构
+  async getMenuTree() {
+    const menus = await this.menuRepository.find({
+      where: { status: 1 },
+      order: { sort: 'ASC' },
+    })
+
+    return this.buildMenuTree(menus)
+  }
+
+  // 根据用户角色获取菜单权限
+  async getMenusByRoles(roleIds: number[]) {
+    if (!roleIds || roleIds.length === 0) {
+      return []
+    }
+
+    const menus = await this.menuRepository
+      .createQueryBuilder('menu')
+      .innerJoin('menu.roles', 'role')
+      .where('role.id IN (:...roleIds)', { roleIds })
+      .andWhere('menu.status = :status', { status: 1 })
+      .orderBy('menu.sort', 'ASC')
+      .getMany()
+
+    return this.buildMenuTree(menus)
+  }
+
+  // 获取用户权限列表
+  async getPermissionsByRoles(roleIds: number[]): Promise<string[]> {
+    if (!roleIds || roleIds.length === 0) {
+      return []
+    }
+
+    const menus = await this.menuRepository
+      .createQueryBuilder('menu')
+      .innerJoin('menu.roles', 'role')
+      .where('role.id IN (:...roleIds)', { roleIds })
+      .andWhere('menu.status = :status', { status: 1 })
+      .select(['menu.perms'])
+      .getMany()
+
+    return menus.map(menu => menu.perms)
+  }
+
+  // 构建菜单树
+  private buildMenuTree(menus: Menu[], parentId: number | null = null): any[] {
+    return menus
+      .filter(menu => menu.parentId === parentId)
+      .map(menu => ({
+        ...menu,
+        children: this.buildMenuTree(menus, menu.id),
+      }))
   }
 
   async findOne(id: number) {

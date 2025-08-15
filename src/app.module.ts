@@ -3,12 +3,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppController } from './app.controller'
 import configuration from './config/configuration'
+/* 系统基础块 */
 import { AuthModule } from './modules/auth/auth.module'
 import { MenuModule } from './modules/menu/menu.module'
-import { PermissionModule } from './modules/permission/permission.module'
 import { RoleModule } from './modules/role/role.module'
-/* 业务模块 */
 import { UserModule } from './modules/user/user.module'
+import { DeptModule } from './modules/dept/dept.module'
+import { DictModule } from './modules/dict/dict.module'
 /* 辅助工具 */
 import { getEnvFilePath } from './utils/env'
 
@@ -32,7 +33,7 @@ import { getEnvFilePath } from './utils/env'
           database: config.get<string>('database.name'),
           synchronize: true, // 是否自动同步实体文件,生产环境建议关闭
           autoLoadEntities: true, // 自动加载实体
-          logging: true, // 启用日志以便调试
+          logging: ['error', 'warn'], // 只显示错误和警告
         }
       },
       inject: [ConfigService],
@@ -40,8 +41,9 @@ import { getEnvFilePath } from './utils/env'
     UserModule,
     AuthModule,
     RoleModule,
-    PermissionModule,
     MenuModule,
+    DeptModule,
+    DictModule,
   ],
   controllers: [AppController],
 })

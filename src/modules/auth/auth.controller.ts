@@ -1,8 +1,10 @@
 import type { LoginAuthDto } from './dto/login-auth.dto'
 import { AuthService } from './auth.service'
 import { Body, Controller, HttpCode, Post } from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { Public } from '@/common/decorators'
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -10,12 +12,64 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(200)
+  @ApiOperation({ summary: '用户登录', description: '用户登录获取访问令牌' })
+  @ApiResponse({
+    status: 200,
+    description: '登录成功',
+    schema: {
+      type: 'object',
+      properties: {
+        code: { type: 'number', example: 200 },
+        data: {
+          type: 'object',
+          properties: {
+            accessToken: { type: 'string', description: '访问令牌' },
+            refreshToken: { type: 'string', description: '刷新令牌' },
+          },
+        },
+        message: { type: 'string', example: '操作成功' },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: '用户名或密码错误' })
   login(@Body() loginAuthDto: LoginAuthDto) {
     return this.authService.login(loginAuthDto)
   }
 
   @Public()
   @Post('refreshToken')
+  @ApiOperation({
+    summary: '刷新令牌',
+    description: '使用刷新令牌获取新的访问令牌',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        refreshToken: { type: 'string', description: '刷新令牌' },
+      },
+      required: ['refreshToken'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: '刷新成功',
+    schema: {
+      type: 'object',
+      properties: {
+        code: { type: 'number', example: 200 },
+        data: {
+          type: 'object',
+          properties: {
+            accessToken: { type: 'string', description: '新的访问令牌' },
+            refreshToken: { type: 'string', description: '新的刷新令牌' },
+          },
+        },
+        message: { type: 'string', example: '操作成功' },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: '刷新令牌无效或已过期' })
   refreshToken(@Body() updateToken: { refreshToken: string }) {
     return this.authService.refreshToken(updateToken.refreshToken)
   }

@@ -1,12 +1,11 @@
-// permission.guard.ts
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import type { Request } from 'express'
 import { Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { AuthService } from '@/modules/auth/auth.service'
 import { UserService } from '@/modules/user/user.service'
-import { ApiErrorCode } from 'src/common/enum'
-import { ApiException } from 'src/common/filters'
+import { ApiErrorCode } from '@/common/enum'
+import { ApiException } from '@/common/filters'
 
 @Injectable()
 export class PermissionGuard implements CanActivate {

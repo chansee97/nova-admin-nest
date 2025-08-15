@@ -1,0 +1,27 @@
+# 设置默认行为，如果 Git 认为文件是文本，则自动规范化行结束符
+* text=auto eol=lf
+
+# 明确声明您希望始终规范化并在签出时转换为本机行结束符的文件
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.sql text eol=lf
+
+# 声明将始终具有 CRLF 行结束符的文件
+*.bat text eol=crlf
+
+# 表示二进制文件，不应修改
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
