@@ -1,13 +1,30 @@
 import type { LoginAuthDto } from './dto/login-auth.dto'
+import { CaptchaResponseDto } from './dto/captcha-response.dto'
 import { AuthService } from './auth.service'
-import { Body, Controller, HttpCode, Post } from '@nestjs/common'
+import { CaptchaService } from './captcha.service'
+import { Body, Controller, HttpCode, Post, Get } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
 import { Public } from '@/common/decorators'
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly captchaService: CaptchaService,
+  ) {}
+
+  @Public()
+  @Get('captcha')
+  @ApiOperation({ summary: '获取验证码', description: '获取图片验证码' })
+  @ApiResponse({
+    status: 200,
+    description: '获取成功',
+    type: CaptchaResponseDto,
+  })
+  getCaptcha(): CaptchaResponseDto {
+    return this.captchaService.generateCaptcha()
+  }
 
   @Public()
   @Post('login')

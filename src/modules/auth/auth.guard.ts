@@ -3,7 +3,7 @@ import type { Request } from 'express'
 import { Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { AuthService } from './auth.service'
-import { ApiErrorCode } from '@/common/enum'
+import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 
 @Injectable()

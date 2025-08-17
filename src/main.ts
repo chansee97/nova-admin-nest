@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ApiExceptionsFilter, HttpExceptionFilter } from '@/common/filters'
-import { TransformInterceptor } from '@/common/interceptor'
+import { TransformInterceptor } from '@/common/interceptors'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
@@ -57,11 +57,13 @@ async function bootstrap() {
 
   // 服务启动
   const configService = app.get(ConfigService)
-  const port = configService.get<number>('server.port')
+  const server = configService.get('app.server')
 
-  await app.listen(port)
-  console.log(`🚀 Application is running on: http://localhost:${port}`)
-  console.log(`📚 Swagger documentation: http://localhost:${port}/api-docs`)
+  await app.listen(server.port)
+  console.log(`🚀 Application is running on: http://localhost:${server.port}`)
+  console.log(
+    `📚 Swagger documentation: http://localhost:${server.port}/api-docs`,
+  )
 }
 bootstrap().catch(error => {
   console.error('Application failed to start:', error)

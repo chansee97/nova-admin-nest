@@ -8,7 +8,3 @@ export function getEnvFilePath() {
   }
   return envFilePath
 }
-
-export function getEnvVar(targetName: string) {
-  return process.env[targetName]
-}
