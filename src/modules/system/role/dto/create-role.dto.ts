@@ -9,7 +9,7 @@ import {
 export class CreateRoleDto {
   @IsNotEmpty({ message: '角色名称不可为空' })
   @IsString()
-  name: string
+  roleName: string
 
   @IsNotEmpty({ message: '角色权限字符串不可为空' })
   @IsString()

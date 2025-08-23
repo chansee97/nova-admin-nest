@@ -97,6 +97,21 @@ export class UserService {
     return user
   }
 
+  async findOneWithRoles(id: number) {
+    const user = await this.userRepository.findOne({
+      where: {
+        userId: id,
+        delFlag: 0,
+      },
+      relations: ['roles', 'dept'],
+    })
+
+    if (!user)
+      throw new ApiException('未找到该用户信息', ApiErrorCode.USER_NOTEXIST)
+
+    return user
+  }
+
   async findOneByUserName(username: string) {
     const user = await this.userRepository.findOne({
       where: {

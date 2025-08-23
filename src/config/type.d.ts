@@ -9,11 +9,12 @@ export interface AppConfig {
     secret: string
     expiresIn: string
     refreshExpiresIn: string
+    enableRefreshToken: boolean
   }
   captcha: {
     enabled: boolean
     expiresIn: number
-    length: number
+    size: number
     type: 'text' | 'math'
     caseSensitive: boolean
   }

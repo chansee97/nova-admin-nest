@@ -24,11 +24,12 @@ const productionConfig: AppConfig = {
     secret: 'secret-key',
     expiresIn: '24h',
     refreshExpiresIn: '7d',
+    enableRefreshToken: false, // 生产环境可选择禁用刷新token
   },
   captcha: {
     enabled: true,
     expiresIn: 300, // 5分钟
-    length: 4,
+    size: 4,
     type: 'math',
     caseSensitive: false,
   },

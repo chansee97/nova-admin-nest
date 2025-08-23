@@ -23,7 +23,7 @@ export class RoleService {
   async create(createRoleDto: CreateRoleDto) {
     // 检查角色名称是否已存在
     const existRoleName = await this.roleRepository.findOne({
-      where: { roleName: createRoleDto.name },
+      where: { roleName: createRoleDto.roleName },
     })
 
     if (existRoleName)

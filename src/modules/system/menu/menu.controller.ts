@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger'
 import { Permissions } from '@/common/decorators'
 
-@ApiTags('Menu')
+@ApiTags('菜单管理')
 @ApiBearerAuth('JWT-auth')
 @Controller('menu')
 export class MenuController {

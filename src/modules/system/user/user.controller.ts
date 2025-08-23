@@ -1,6 +1,6 @@
-import type { CreateUserDto } from './dto/create-user.dto'
-import type { SetRoleDto } from './dto/set-roles.dto'
-import type { UpdateUserDto } from './dto/update-user.dto'
+import { CreateUserDto } from './dto/create-user.dto'
+import { SetRoleDto } from './dto/set-roles.dto'
+import { UpdateUserDto } from './dto/update-user.dto'
 import type { SearchQuery } from '@/common/dto'
 import { UserService } from './user.service'
 import {
@@ -12,6 +12,7 @@ import {
   Patch,
   Post,
   Query,
+  HttpCode,
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -19,11 +20,11 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
-  ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger'
 import { Permissions, Public } from '@/common/decorators'
 
-@ApiTags('User')
+@ApiTags('用户管理')
 @ApiBearerAuth('JWT-auth')
 @Controller('user')
 export class UserController {
@@ -32,7 +33,29 @@ export class UserController {
   @Public()
   @Post('register')
   @ApiOperation({ summary: '用户注册', description: '注册新用户账号' })
-  @ApiResponse({ status: 201, description: '注册成功' })
+  @ApiBody({
+    type: CreateUserDto,
+    description: '用户注册信息',
+    examples: {
+      admin: {
+        summary: '管理员用户',
+        description: '创建一个管理员用户账号',
+        value: {
+          username: 'admin',
+          password: '12345',
+        },
+      },
+      normal: {
+        summary: '普通用户',
+        description: '创建一个普通用户账号',
+        value: {
+          username: 'user001',
+          password: '12345',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: '注册成功' })
   @ApiResponse({ status: 400, description: '用户名已存在或参数错误' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto)
@@ -40,18 +63,6 @@ export class UserController {
 
   @Get('page')
   @ApiOperation({ summary: '分页查询用户', description: '分页获取用户列表' })
-  @ApiQuery({
-    name: 'pageNum',
-    required: false,
-    description: '页码',
-    example: 1,
-  })
-  @ApiQuery({
-    name: 'pageSize',
-    required: false,
-    description: '每页数量',
-    example: 10,
-  })
   @ApiResponse({ status: 200, description: '查询成功' })
   @Permissions('system:user:query')
   findAll(@Query() searchQuery: SearchQuery) {
@@ -81,7 +92,30 @@ export class UserController {
   }
 
   @Post('setRole')
+  @HttpCode(200)
   @ApiOperation({ summary: '设置用户角色', description: '为用户分配角色' })
+  @ApiBody({
+    type: SetRoleDto,
+    description: '用户角色设置信息',
+    examples: {
+      multipleRoles: {
+        summary: '分配多个角色',
+        description: '为用户分配多个角色',
+        value: {
+          userId: 1,
+          roleIds: [1, 2, 3],
+        },
+      },
+      removeAllRoles: {
+        summary: '移除所有角色',
+        description: '移除用户的所有角色',
+        value: {
+          userId: 1,
+          roleIds: [],
+        },
+      },
+    },
+  })
   @ApiResponse({ status: 200, description: '设置成功' })
   @ApiResponse({ status: 404, description: '用户不存在' })
   @Permissions('system:user:edit')

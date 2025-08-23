@@ -40,6 +40,7 @@ export class User {
 
   @Column({
     length: 30,
+    nullable: true,
     comment: '用户昵称',
   })
   nickName: string

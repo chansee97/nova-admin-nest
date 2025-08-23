@@ -2,12 +2,17 @@ import type { LoginAuthDto } from './dto/login-auth.dto'
 import { CaptchaResponseDto } from './dto/captcha-response.dto'
 import { AuthService } from './auth.service'
 import { CaptchaService } from './captcha.service'
-import { Body, Controller, HttpCode, Post, Get } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'
+import { Body, Controller, HttpCode, Post, Get, Headers } from '@nestjs/common'
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger'
 import { Public } from '@/common/decorators'
 
-@ApiTags('Auth')
-@Controller('auth')
+@ApiTags('认证管理')
+@Controller()
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -30,27 +35,27 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   @ApiOperation({ summary: '用户登录', description: '用户登录获取访问令牌' })
-  @ApiResponse({
-    status: 200,
-    description: '登录成功',
-    schema: {
-      type: 'object',
-      properties: {
-        code: { type: 'number', example: 200 },
-        data: {
-          type: 'object',
-          properties: {
-            accessToken: { type: 'string', description: '访问令牌' },
-            refreshToken: { type: 'string', description: '刷新令牌' },
-          },
-        },
-        message: { type: 'string', example: '操作成功' },
-      },
-    },
-  })
+  @ApiResponse({ status: 200, description: '登录成功' })
   @ApiResponse({ status: 401, description: '用户名或密码错误' })
   login(@Body() loginAuthDto: LoginAuthDto) {
     return this.authService.login(loginAuthDto)
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '退出登录',
+    description: '用户退出登录，使token失效',
+  })
+  @ApiResponse({ status: 200, description: '退出成功' })
+  logout(@Headers('authorization') authorization: string) {
+    // 提取Bearer token
+    const token = authorization?.replace('Bearer ', '')
+    if (!token) {
+      throw new Error('未提供token')
+    }
+    return this.authService.logout(token)
   }
 
   @Public()
@@ -59,35 +64,22 @@ export class AuthController {
     summary: '刷新令牌',
     description: '使用刷新令牌获取新的访问令牌',
   })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        refreshToken: { type: 'string', description: '刷新令牌' },
-      },
-      required: ['refreshToken'],
-    },
-  })
-  @ApiResponse({
-    status: 200,
-    description: '刷新成功',
-    schema: {
-      type: 'object',
-      properties: {
-        code: { type: 'number', example: 200 },
-        data: {
-          type: 'object',
-          properties: {
-            accessToken: { type: 'string', description: '新的访问令牌' },
-            refreshToken: { type: 'string', description: '新的刷新令牌' },
-          },
-        },
-        message: { type: 'string', example: '操作成功' },
-      },
-    },
-  })
-  @ApiResponse({ status: 401, description: '刷新令牌无效或已过期' })
   refreshToken(@Body() updateToken: { refreshToken: string }) {
     return this.authService.refreshToken(updateToken.refreshToken)
+  }
+
+  @Get('userInfo')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '获取当前用户信息',
+    description: '通过token获取当前登录用户的详细信息和角色信息',
+  })
+  getUserInfo(@Headers('authorization') authorization: string) {
+    // 提取Bearer token
+    const token = authorization?.replace('Bearer ', '')
+    if (!token) {
+      throw new Error('未提供token')
+    }
+    return this.authService.getUserInfo(token)
   }
 }

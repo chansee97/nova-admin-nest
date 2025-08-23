@@ -7,10 +7,10 @@ const developmentConfig: AppConfig = {
   },
   database: {
     type: 'postgres',
-    host: '192.168.80.128',
+    host: '127.0.0.1',
     port: 5432,
     username: 'root',
-    password: '123456',
+    password: 'postgres',
     database: 'nova_db',
     synchronize: true,
     autoLoadEntities: true,
@@ -24,11 +24,12 @@ const developmentConfig: AppConfig = {
     secret: 'secret-key',
     expiresIn: '24h',
     refreshExpiresIn: '7d',
+    enableRefreshToken: false,
   },
   captcha: {
     enabled: true,
     expiresIn: 300, // 5分钟
-    length: 4,
+    size: 4,
     type: 'math',
     caseSensitive: false,
   },

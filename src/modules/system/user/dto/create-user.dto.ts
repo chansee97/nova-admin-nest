@@ -34,18 +34,18 @@ export class CreateUserDto {
   })
   username: string
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '用户昵称',
     example: '管理员',
     minLength: 1,
     maxLength: 30,
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: '用户昵称不能为空' })
   @Length(1, 30, {
     message: '用户昵称长度1-30',
   })
-  nickName: string
+  nickName?: string
 
   @ApiPropertyOptional({
     description: '用户邮箱',

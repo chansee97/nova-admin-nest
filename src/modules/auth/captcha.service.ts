@@ -39,7 +39,8 @@ export class CaptchaService {
 
     // 使用工具函数生成验证码
     const captcha = generateCaptchaImage({
-      size: this.captchaConfig.length,
+      size: this.captchaConfig.size,
+      type: this.captchaConfig.type,
     })
 
     // 使用 UUID 生成唯一ID

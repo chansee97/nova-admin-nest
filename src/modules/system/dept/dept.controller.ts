@@ -22,7 +22,7 @@ import {
 } from '@nestjs/swagger'
 import { Permissions } from '@/common/decorators'
 
-@ApiTags('Dept')
+@ApiTags('部门管理')
 @ApiBearerAuth('JWT-auth')
 @Controller('dept')
 export class DeptController {

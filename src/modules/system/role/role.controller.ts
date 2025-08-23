@@ -1,6 +1,6 @@
-import type { CreateRoleDto } from './dto/create-role.dto'
-import type { SetMenusDto } from './dto/set-menus.dto'
-import type { UpdateRoleDto } from './dto/update-role.dto'
+import { CreateRoleDto } from './dto/create-role.dto'
+import { SetMenusDto } from './dto/set-menus.dto'
+import { UpdateRoleDto } from './dto/update-role.dto'
 import type { SearchQuery } from '@/common/dto'
 import { RoleService } from './role.service'
 import {
@@ -12,6 +12,7 @@ import {
   Patch,
   Post,
   Query,
+  HttpCode,
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -20,18 +21,46 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger'
 import { Permissions } from '@/common/decorators'
 
-@ApiTags('Role')
+@ApiTags('角色管理')
 @ApiBearerAuth('JWT-auth')
 @Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Post('create')
+  @HttpCode(200)
   @ApiOperation({ summary: '创建角色', description: '创建新的角色' })
-  @ApiResponse({ status: 201, description: '创建成功' })
+  @ApiBody({
+    type: CreateRoleDto,
+    description: '角色创建信息',
+    examples: {
+      minimal: {
+        summary: '最小参数',
+        description: '创建角色所需的最少参数',
+        value: {
+          roleName: '管理员',
+          roleKey: 'admin',
+          sort: 0,
+        },
+      },
+      full: {
+        summary: '完整参数',
+        description: '创建角色包含所有可选参数',
+        value: {
+          roleName: '经理',
+          roleKey: 'manager',
+          sort: 0,
+          roleStatus: 1,
+          remark: '经理角色',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: '创建成功' })
   @ApiResponse({ status: 400, description: '角色名称或编码已存在' })
   @Permissions('system:role:add')
   create(@Body() createRoleDto: CreateRoleDto) {

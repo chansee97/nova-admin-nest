@@ -6,6 +6,8 @@ import * as svgCaptcha from 'svg-captcha'
 export interface CaptchaConfig {
   /** 验证码长度 */
   size?: number
+  /** 验证码类型 */
+  type?: 'text' | 'math'
   /** 忽略的字符 */
   ignoreChars?: string
   /** 干扰线条数 */
@@ -37,6 +39,7 @@ export interface CaptchaResult {
  */
 const DEFAULT_CAPTCHA_CONFIG: Required<CaptchaConfig> = {
   size: 4,
+  type: 'text',
   ignoreChars: '0o1iIl',
   noise: 2,
   color: true,
@@ -56,20 +59,38 @@ export function generateCaptchaImage(
 ): CaptchaResult {
   const finalConfig = { ...DEFAULT_CAPTCHA_CONFIG, ...config }
 
-  const captcha = svgCaptcha.create({
-    size: finalConfig.size,
-    ignoreChars: finalConfig.ignoreChars,
-    noise: finalConfig.noise,
-    color: finalConfig.color,
-    background: finalConfig.background,
-    width: finalConfig.width,
-    height: finalConfig.height,
-    fontSize: finalConfig.fontSize,
-  })
+  // 根据类型生成不同的验证码
+  if (finalConfig.type === 'math') {
+    const captcha = svgCaptcha.createMathExpr({
+      noise: finalConfig.noise,
+      color: finalConfig.color,
+      background: finalConfig.background,
+      width: finalConfig.width,
+      height: finalConfig.height,
+      fontSize: finalConfig.fontSize,
+    })
 
-  return {
-    text: captcha.text.toLowerCase(),
-    data: captcha.data,
+    return {
+      text: captcha.text,
+      data: captcha.data,
+    }
+  } else {
+    // 默认生成文本验证码
+    const captcha = svgCaptcha.create({
+      size: finalConfig.size,
+      ignoreChars: finalConfig.ignoreChars,
+      noise: finalConfig.noise,
+      color: finalConfig.color,
+      background: finalConfig.background,
+      width: finalConfig.width,
+      height: finalConfig.height,
+      fontSize: finalConfig.fontSize,
+    })
+
+    return {
+      text: captcha.text.toLowerCase(),
+      data: captcha.data,
+    }
   }
 }
 
