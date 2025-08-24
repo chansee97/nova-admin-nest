@@ -7,10 +7,11 @@ import {
   Length,
   Matches,
 } from 'class-validator'
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiProperty } from '@nestjs/swagger'
 
 export class CreateDictTypeDto {
   @ApiProperty({
+    required: true,
     description: '字典名称',
     example: '用户性别',
     minLength: 1,
@@ -24,6 +25,7 @@ export class CreateDictTypeDto {
   dictName: string
 
   @ApiProperty({
+    required: true,
     description: '字典类型',
     example: 'sys_user_sex',
     minLength: 1,
@@ -39,7 +41,8 @@ export class CreateDictTypeDto {
   })
   dictType: string
 
-  @ApiPropertyOptional({
+  @ApiProperty({
+    required: false,
     description: '状态',
     enum: [0, 1],
     example: 1,
@@ -49,7 +52,8 @@ export class CreateDictTypeDto {
   @IsIn([0, 1], { message: '状态只能是 0、1' })
   status?: number = 1
 
-  @ApiPropertyOptional({
+  @ApiProperty({
+    required: false,
     description: '备注信息',
     example: '用户性别字典',
   })

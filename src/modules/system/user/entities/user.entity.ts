@@ -10,7 +10,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm'
+import { Exclude } from 'class-transformer'
 import { Role } from '@/modules/system/role/entities/role.entity'
 import { Dept } from '@/modules/system/dept/entities/dept.entity'
 import { encryptData } from '@/utils/crypto'
@@ -19,7 +21,7 @@ import { encryptData } from '@/utils/crypto'
 @Index(['username'])
 @Index(['phone'])
 @Index(['email'])
-@Index(['userStatus', 'delFlag'])
+@Index(['userStatus', 'deletedAt'])
 export class User {
   @PrimaryGeneratedColumn({ comment: '用户ID' })
   userId: number
@@ -29,7 +31,7 @@ export class User {
     nullable: true,
     comment: '部门ID',
   })
-  deptId: number
+  deptId: number | null
 
   @Column({
     length: 30,
@@ -81,6 +83,7 @@ export class User {
     default: '',
     comment: '密码',
   })
+  @Exclude()
   password: string
 
   @Column({
@@ -121,17 +124,15 @@ export class User {
   })
   remark: string
 
-  @Column({
-    type: 'smallint',
-    default: 0,
-    comment: '删除标志（0未删除 1已删除）',
+  @DeleteDateColumn({
+    comment: '删除时间',
   })
-  delFlag: number
+  deletedAt: Date | null
 
   // 多个用户属于一个部门
-  @ManyToOne(() => Dept, dept => dept.users)
-  @JoinColumn()
-  dept: Dept
+  @ManyToOne(() => Dept, dept => dept.users, { nullable: true })
+  @JoinColumn({ name: 'dept_id' })
+  dept: Dept | null
 
   @ManyToMany(() => Role, role => role.users)
   @JoinTable({

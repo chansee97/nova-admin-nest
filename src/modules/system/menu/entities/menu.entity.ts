@@ -6,6 +6,7 @@ import {
   ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm'
 import { Role } from '../../role/entities/role.entity'
 
@@ -131,12 +132,10 @@ export class Menu {
   })
   remark: string
 
-  @Column({
-    type: 'smallint',
-    default: 0,
-    comment: '删除标志（0代表存在 1代表删除）',
+  @DeleteDateColumn({
+    comment: '删除时间',
   })
-  delFlag: number
+  deletedAt: Date | null
 
   // 角色关联（多对多）
   @ManyToMany(() => Role, role => role.menus)

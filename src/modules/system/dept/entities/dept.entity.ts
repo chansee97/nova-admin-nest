@@ -105,13 +105,6 @@ export class Dept {
   })
   remark: string
 
-  @Column({
-    type: 'smallint',
-    default: 0,
-    comment: '删除标志（0未删除 1已删除）',
-  })
-  delFlag: number
-
   // 一个部门可以有多个用户
   @OneToMany(() => User, user => user.dept)
   users: User[]

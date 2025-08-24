@@ -70,13 +70,6 @@ export class DictType {
   })
   remark: string
 
-  @Column({
-    type: 'smallint',
-    default: 0,
-    comment: '删除标志（0未删除 1已删除）',
-  })
-  delFlag: number
-
   // 一个字典类型可以有多个字典数据
   @OneToMany('DictData', 'dictTypeEntity')
   dictDataList: any[]

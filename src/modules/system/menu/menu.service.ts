@@ -48,6 +48,7 @@ export class MenuService {
     }
 
     const [list, total] = await this.menuRepository.findAndCount({
+      where: {},
       skip,
       take,
       order: { sort: 'ASC', createTime: 'DESC' },
@@ -123,8 +124,7 @@ export class MenuService {
     return existData
   }
 
-  async update(updateMenuDto: UpdateMenuDto) {
-    const { id } = updateMenuDto
+  async update(id: number, updateMenuDto: UpdateMenuDto) {
     await this.findOne(id)
 
     await this.menuRepository.update(id, updateMenuDto)
@@ -133,9 +133,18 @@ export class MenuService {
   }
 
   async remove(id: number) {
-    await this.findOne(id)
+    const menu = await this.menuRepository.findOne({
+      where: {
+        menuId: id,
+      },
+    })
 
-    await this.menuRepository.delete(id)
+    if (!menu) {
+      throw new ApiException('菜单不存在', ApiErrorCode.SERVER_ERROR)
+    }
+
+    // 软删除 - DeleteDateColumn 自动处理
+    await this.menuRepository.softRemove(menu)
     return '删除成功'
   }
 }

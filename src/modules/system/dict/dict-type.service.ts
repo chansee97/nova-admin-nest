@@ -1,13 +1,13 @@
+import type { Repository } from 'typeorm'
+import type { CreateDictTypeDto } from './dto/create-dict-type.dto'
+import type { UpdateDictTypeDto } from './dto/update-dict-type.dto'
+import type { SearchQuery } from '@/common/dto'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
-import { CreateDictTypeDto } from './dto/create-dict-type.dto'
-import { UpdateDictTypeDto } from './dto/update-dict-type.dto'
+import { ApiErrorCode } from '@/common/enums'
+import { ApiException } from '@/common/filters'
 import { DictType } from './entities/dict-type.entity'
 import { DictData } from './entities/dict-data.entity'
-import { ApiException } from '@/common/filters'
-import { ApiErrorCode } from '@/common/enums'
-import type { SearchQuery } from '@/common/dto'
 
 @Injectable()
 export class DictTypeService {
@@ -24,7 +24,6 @@ export class DictTypeService {
     const existingDictType = await this.dictTypeRepository.findOne({
       where: {
         dictType: createDictTypeDto.dictType,
-        delFlag: 0,
       },
     })
 
@@ -42,9 +41,6 @@ export class DictTypeService {
     const skip = (pageNum - 1) * pageSize
 
     const [list, total] = await this.dictTypeRepository.findAndCount({
-      where: {
-        delFlag: 0,
-      },
       order: {
         createTime: 'DESC',
       },
@@ -65,7 +61,6 @@ export class DictTypeService {
     const dictType = await this.dictTypeRepository.findOne({
       where: {
         dictId: id,
-        delFlag: 0,
       },
       relations: ['dictDataList'],
     })
@@ -82,7 +77,6 @@ export class DictTypeService {
     const result = await this.dictTypeRepository.findOne({
       where: {
         dictType,
-        delFlag: 0,
         status: 1,
       },
       relations: ['dictDataList'],
@@ -94,20 +88,19 @@ export class DictTypeService {
 
     // 过滤启用的字典数据并排序
     result.dictDataList = result.dictDataList
-      .filter(item => item.status === 1 && item.delFlag === 0)
+      .filter(item => item.status === 1)
       .sort((a, b) => a.dictSort - b.dictSort)
 
     return result
   }
 
   // 更新字典类型
-  async update(updateDictTypeDto: UpdateDictTypeDto) {
-    const { dictId, ...updateData } = updateDictTypeDto
+  async update(dictId: number, updateDictTypeDto: UpdateDictTypeDto) {
+    const updateData = updateDictTypeDto
 
     const dictType = await this.dictTypeRepository.findOne({
       where: {
         dictId,
-        delFlag: 0,
       },
     })
 
@@ -120,7 +113,6 @@ export class DictTypeService {
       const existingDictType = await this.dictTypeRepository.findOne({
         where: {
           dictType: updateData.dictType,
-          delFlag: 0,
         },
       })
 
@@ -134,12 +126,11 @@ export class DictTypeService {
     return await this.dictTypeRepository.save(dictType)
   }
 
-  // 删除字典类型（软删除）
+  // 删除字典类型（硬删除）
   async remove(id: number) {
     const dictType = await this.dictTypeRepository.findOne({
       where: {
         dictId: id,
-        delFlag: 0,
       },
     })
 
@@ -151,7 +142,6 @@ export class DictTypeService {
     const dictDataCount = await this.dictDataRepository.count({
       where: {
         dictType: dictType.dictType,
-        delFlag: 0,
       },
     })
 
@@ -162,16 +152,15 @@ export class DictTypeService {
       )
     }
 
-    // 软删除
-    dictType.delFlag = 1
-    return await this.dictTypeRepository.save(dictType)
+    // 硬删除
+    await this.dictTypeRepository.remove(dictType)
+    return '删除成功'
   }
 
   // 获取所有字典类型选项（用于下拉框）
   async getOptions() {
     const dictTypes = await this.dictTypeRepository.find({
       where: {
-        delFlag: 0,
         status: 1,
       },
       select: ['dictId', 'dictName', 'dictType'],

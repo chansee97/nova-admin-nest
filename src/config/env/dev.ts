@@ -22,7 +22,7 @@ const developmentConfig: AppConfig = {
   },
   jwt: {
     secret: 'secret-key',
-    expiresIn: '24h',
+    expiresIn: '7d',
     refreshExpiresIn: '7d',
     enableRefreshToken: false,
   },

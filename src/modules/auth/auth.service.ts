@@ -37,10 +37,7 @@ export class AuthService {
 
     // 生成 Token
     const token = this.generateToken(user)
-    return {
-      ...user,
-      ...token,
-    }
+    return token
   }
 
   generateToken(user: User) {
@@ -144,8 +141,8 @@ export class AuthService {
         throw new ApiException('token无效', ApiErrorCode.TOKEN_INVALID)
       }
 
-      // 根据userId获取用户完整信息，包括角色
-      const user = await this.userService.findOneWithRoles(payload.userId)
+      // 根据userId获取用户完整信息，包括角色和部门
+      const user = await this.userService.findOne(payload.userId)
 
       if (!user) {
         throw new ApiException('用户不存在', ApiErrorCode.USER_NOTEXIST)

@@ -106,13 +106,6 @@ export class DictData {
   })
   remark: string
 
-  @Column({
-    type: 'smallint',
-    default: 0,
-    comment: '删除标志（0未删除 1已删除）',
-  })
-  delFlag: number
-
   // 关联的字典类型实体
   @ManyToOne('DictType', 'dictDataList')
   @JoinColumn({ referencedColumnName: 'dictType' })

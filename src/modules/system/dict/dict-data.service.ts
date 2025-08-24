@@ -1,48 +1,44 @@
+import type { Repository } from 'typeorm'
+import type { CreateDictDataDto } from './dto/create-dict-data.dto'
+import type { UpdateDictDataDto } from './dto/update-dict-data.dto'
+import type { SearchQuery } from '@/common/dto/page.dto'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
-import { CreateDictDataDto } from './dto/create-dict-data.dto'
-import { UpdateDictDataDto } from './dto/update-dict-data.dto'
-import { DictData } from './entities/dict-data.entity'
-import { DictType } from './entities/dict-type.entity'
-import { ApiException } from '@/common/filters'
 import { ApiErrorCode } from '@/common/enums'
-import type { SearchQuery } from '@/common/dto'
+import { ApiException } from '@/common/filters'
+import { DictData } from './entities/dict-data.entity'
 
 @Injectable()
 export class DictDataService {
   constructor(
     @InjectRepository(DictData)
-    private readonly dictDataRepository: Repository<DictData>,
-    @InjectRepository(DictType)
-    private readonly dictTypeRepository: Repository<DictType>,
+    private dictDataRepository: Repository<DictData>,
   ) {}
 
   // 创建字典数据
   async create(createDictDataDto: CreateDictDataDto) {
-    // 检查字典类型是否存在
-    const dictType = await this.dictTypeRepository.findOne({
+    // 检查字典值是否已存在
+    const existValue = await this.dictDataRepository.findOne({
       where: {
+        dictValue: createDictDataDto.dictValue,
         dictType: createDictDataDto.dictType,
-        delFlag: 0,
       },
     })
 
-    if (!dictType) {
-      throw new ApiException('字典类型不存在', ApiErrorCode.DICT_TYPE_NOT_EXIST)
+    if (existValue) {
+      throw new ApiException('字典值已存在', ApiErrorCode.DICT_DATA_NOT_EXIST)
     }
 
-    // 检查字典值是否已存在
-    const existingDictData = await this.dictDataRepository.findOne({
+    // 检查字典标签是否已存在
+    const existLabel = await this.dictDataRepository.findOne({
       where: {
+        dictLabel: createDictDataDto.dictLabel,
         dictType: createDictDataDto.dictType,
-        dictValue: createDictDataDto.dictValue,
-        delFlag: 0,
       },
     })
 
-    if (existingDictData) {
-      throw new ApiException('字典键值已存在', ApiErrorCode.DICT_DATA_EXISTS)
+    if (existLabel) {
+      throw new ApiException('字典标签已存在', ApiErrorCode.DICT_DATA_NOT_EXIST)
     }
 
     const dictData = this.dictDataRepository.create(createDictDataDto)
@@ -54,9 +50,7 @@ export class DictDataService {
     const { pageNum = 1, pageSize = 10, dictType } = searchQuery
     const skip = (pageNum - 1) * pageSize
 
-    const whereCondition: any = {
-      delFlag: 0,
-    }
+    const whereCondition: any = {}
 
     if (dictType) {
       whereCondition.dictType = dictType
@@ -85,7 +79,6 @@ export class DictDataService {
     const dictData = await this.dictDataRepository.findOne({
       where: {
         dictCode: id,
-        delFlag: 0,
       },
     })
 
@@ -101,7 +94,6 @@ export class DictDataService {
     const dictDataList = await this.dictDataRepository.find({
       where: {
         dictType,
-        delFlag: 0,
         status: 1,
       },
       order: {
@@ -109,56 +101,40 @@ export class DictDataService {
       },
     })
 
-    return dictDataList.map(item => ({
-      label: item.dictLabel,
-      value: item.dictValue,
-      cssClass: item.cssClass,
-      listClass: item.listClass,
-      isDefault: item.isDefault,
-    }))
+    return dictDataList
   }
 
   // 更新字典数据
-  async update(updateDictDataDto: UpdateDictDataDto) {
-    const { dictCode, ...updateData } = updateDictDataDto
+  async update(dictCode: number, updateDictDataDto: UpdateDictDataDto) {
+    const updateData = updateDictDataDto
 
-    const dictData = await this.dictDataRepository.findOne({
-      where: {
-        dictCode,
-        delFlag: 0,
-      },
-    })
+    // 检查是否存在
+    await this.findOne(dictCode)
 
-    if (!dictData) {
-      throw new ApiException('字典数据不存在', ApiErrorCode.DICT_DATA_NOT_EXIST)
-    }
-
-    // 检查字典值是否重复（排除自己）
+    // 如果更新字典值，检查是否重复
     if (updateData.dictValue) {
-      const existingDictData = await this.dictDataRepository.findOne({
+      const existValue = await this.dictDataRepository.findOne({
         where: {
-          dictType: updateData.dictType || dictData.dictType,
           dictValue: updateData.dictValue,
-          delFlag: 0,
+          dictType: updateDictDataDto.dictType,
+          dictCode: { $ne: dictCode } as any,
         },
       })
 
-      if (existingDictData && existingDictData.dictCode !== dictCode) {
-        throw new ApiException('字典键值已存在', ApiErrorCode.DICT_DATA_EXISTS)
+      if (existValue) {
+        throw new ApiException('字典值已存在', ApiErrorCode.DICT_DATA_NOT_EXIST)
       }
     }
 
-    // 更新字典数据信息
-    Object.assign(dictData, updateData)
-    return await this.dictDataRepository.save(dictData)
+    await this.dictDataRepository.update(dictCode, updateData)
+    return '字典数据修改成功'
   }
 
-  // 删除字典数据（软删除）
+  // 删除字典数据（硬删除）
   async remove(id: number) {
     const dictData = await this.dictDataRepository.findOne({
       where: {
         dictCode: id,
-        delFlag: 0,
       },
     })
 
@@ -166,14 +142,14 @@ export class DictDataService {
       throw new ApiException('字典数据不存在', ApiErrorCode.DICT_DATA_NOT_EXIST)
     }
 
-    // 软删除
-    dictData.delFlag = 1
-    return await this.dictDataRepository.save(dictData)
+    // 硬删除
+    await this.dictDataRepository.remove(dictData)
+    return '删除成功'
   }
 
   // 刷新字典缓存（预留接口）
   refreshCache() {
     // 这里可以实现 Redis 缓存刷新逻辑
-    return { message: '字典缓存刷新成功' }
+    return '缓存刷新成功'
   }
 }

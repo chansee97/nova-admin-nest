@@ -1,6 +1,5 @@
 import type { Repository } from 'typeorm'
 import type { CreateUserDto } from './dto/create-user.dto'
-import type { SetRoleDto } from './dto/set-roles.dto'
 import type { UpdateUserDto } from './dto/update-user.dto'
 import type { SearchQuery } from '@/common/dto/page.dto'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
@@ -22,7 +21,7 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const { username } = createUserDto
+    const { username, ...userData } = createUserDto
     const existUser = await this.userRepository.findOne({
       where: { username },
     })
@@ -30,8 +29,13 @@ export class UserService {
     if (existUser) throw new ApiException('用户已存在', ApiErrorCode.USER_EXIST)
 
     try {
-      const newUser = this.userRepository.create(createUserDto)
+      // 加密密码
+      userData.password = encryptData(userData.password)
+
+      // 创建用户基本信息
+      const newUser = this.userRepository.create(userData)
       await this.userRepository.save(newUser)
+
       return '注册成功'
     } catch (error: unknown) {
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR)
@@ -47,25 +51,21 @@ export class UserService {
       take = searchQuery.pageSize
     }
 
-    const [list, total] = await this.userRepository.findAndCount({
-      select: [
-        'userId',
-        'username',
-        'nickName',
-        'avatar',
-        'email',
-        'phone',
-        'remark',
-        'deptId',
-      ],
-      relations: ['dept'], // 包含部门信息
-      skip,
-      take,
-      where: {
-        delFlag: 0,
-        userStatus: 1,
-      },
-    })
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.dept', 'dept')
+      .where('1=1')
+      .andWhere('user.userStatus = :userStatus', { userStatus: 1 })
+
+    if (skip > 0) {
+      queryBuilder.skip(skip)
+    }
+
+    if (take > 0) {
+      queryBuilder.take(take)
+    }
+
+    const [list, total] = await queryBuilder.getManyAndCount()
 
     return {
       list,
@@ -75,39 +75,18 @@ export class UserService {
 
   async findOne(id: number) {
     const user = await this.userRepository.findOne({
-      select: [
-        'userId',
-        'username',
-        'nickName',
-        'avatar',
-        'email',
-        'phone',
-        'remark',
-      ],
       where: {
         userId: id,
-        delFlag: 0,
       },
-      relations: ['roles'],
+      relations: {
+        roles: true,
+        dept: true,
+      },
     })
 
-    if (!user)
+    if (!user) {
       throw new ApiException('未找到该用户信息', ApiErrorCode.USER_NOTEXIST)
-
-    return user
-  }
-
-  async findOneWithRoles(id: number) {
-    const user = await this.userRepository.findOne({
-      where: {
-        userId: id,
-        delFlag: 0,
-      },
-      relations: ['roles', 'dept'],
-    })
-
-    if (!user)
-      throw new ApiException('未找到该用户信息', ApiErrorCode.USER_NOTEXIST)
+    }
 
     return user
   }
@@ -116,7 +95,6 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: {
         username,
-        delFlag: 0,
       },
     })
     if (!user)
@@ -125,38 +103,54 @@ export class UserService {
     return user
   }
 
-  async update(updateUserDto: UpdateUserDto) {
-    const { id } = updateUserDto
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const { roleIds, ...userData } = updateUserDto
 
-    if (updateUserDto.password)
-      updateUserDto.password = encryptData(updateUserDto.password)
+    // 如果包含密码，需要加密
+    if (userData.password) {
+      userData.password = encryptData(userData.password)
+    }
 
-    await this.userRepository.update(id, updateUserDto)
+    // 更新用户基本信息
+    await this.userRepository.update(id, userData)
+
+    // 如果包含角色更新，需要处理用户角色关系
+    if (roleIds !== undefined) {
+      const user = await this.findOne(id)
+
+      if (roleIds.length > 0) {
+        // 查找指定的角色
+        const roles = await this.roleRepository.find({
+          where: {
+            roleId: In(roleIds),
+          },
+        })
+        user.roles = roles
+      } else {
+        // 如果roleIds为空数组，则清空用户角色
+        user.roles = []
+      }
+
+      // 保存用户角色关系
+      await this.userRepository.save(user)
+    }
+
     return '更新成功'
   }
 
-  async setRole(setRoleDto: SetRoleDto) {
-    const { userId, roleIds } = setRoleDto
-
-    const user = await this.findOne(userId)
-
-    const roles = await this.roleRepository.find({
+  async remove(id: number) {
+    const user = await this.userRepository.findOne({
       where: {
-        roleId: In(roleIds),
+        userId: id,
       },
     })
 
-    user.roles = roles
+    if (!user) {
+      throw new ApiException('用户不存在', ApiErrorCode.USER_NOTEXIST)
+    }
 
-    await this.userRepository.save(user)
-
-    return '设置成功'
-  }
-
-  async remove(id: number) {
-    const user = await this.findOne(id)
-
-    await this.userRepository.remove(user)
+    // 软删除 - DeleteDateColumn 自动处理
+    await this.userRepository.softRemove(user)
 
     return '删除成功'
   }

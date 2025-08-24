@@ -6,19 +6,18 @@ import {
   IsIn,
   Length,
   Matches,
+  IsArray,
 } from 'class-validator'
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiProperty } from '@nestjs/swagger'
 
 export class CreateUserDto {
-  @ApiPropertyOptional({
-    description: '部门ID',
-    example: 1,
-  })
+  @ApiProperty({ required: false, description: '部门ID', example: 1 })
   @IsOptional()
   @IsNumber()
   deptId?: number
 
   @ApiProperty({
+    required: true,
     description: '用户账号',
     example: 'admin',
     minLength: 5,
@@ -34,7 +33,8 @@ export class CreateUserDto {
   })
   username: string
 
-  @ApiPropertyOptional({
+  @ApiProperty({
+    required: false,
     description: '用户昵称',
     example: '管理员',
     minLength: 1,
@@ -47,7 +47,8 @@ export class CreateUserDto {
   })
   nickName?: string
 
-  @ApiPropertyOptional({
+  @ApiProperty({
+    required: false,
     description: '用户邮箱',
     example: 'admin@example.com',
   })
@@ -55,7 +56,8 @@ export class CreateUserDto {
   @IsString()
   email?: string
 
-  @ApiPropertyOptional({
+  @ApiProperty({
+    required: false,
     description: '手机号码',
     example: '13800138000',
   })
@@ -63,7 +65,8 @@ export class CreateUserDto {
   @IsString()
   phone?: string
 
-  @ApiPropertyOptional({
+  @ApiProperty({
+    required: false,
     description: '用户性别',
     enum: ['male', 'female', 'unknown'],
     example: 'male',
@@ -75,7 +78,8 @@ export class CreateUserDto {
   })
   gender?: 'male' | 'female' | 'unknown' = 'unknown'
 
-  @ApiPropertyOptional({
+  @ApiProperty({
+    required: false,
     description: '头像地址',
     example: 'https://example.com/avatar.jpg',
   })
@@ -84,6 +88,7 @@ export class CreateUserDto {
   avatar?: string
 
   @ApiProperty({
+    required: true,
     description: '用户密码',
     example: '123456',
     minLength: 6,
@@ -96,7 +101,8 @@ export class CreateUserDto {
   })
   password: string
 
-  @ApiPropertyOptional({
+  @ApiProperty({
+    required: false,
     description: '用户状态',
     enum: [0, 1],
     example: 1,
@@ -106,11 +112,23 @@ export class CreateUserDto {
   @IsIn([0, 1], { message: '状态只能是 0、1' })
   userStatus?: number = 1
 
-  @ApiPropertyOptional({
+  @ApiProperty({
+    required: false,
     description: '备注信息',
     example: '系统管理员',
   })
   @IsOptional()
   @IsString()
   remark?: string
+
+  @ApiProperty({
+    required: false,
+    description: '角色ID数组',
+    example: [1, 2, 3],
+    type: [Number],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  roleIds?: number[]
 }

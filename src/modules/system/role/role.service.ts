@@ -1,6 +1,6 @@
 import type { Repository } from 'typeorm'
 import type { CreateRoleDto } from './dto/create-role.dto'
-import type { SetMenusDto } from './dto/set-menus.dto'
+
 import type { UpdateRoleDto } from './dto/update-role.dto'
 import type { SearchQuery } from '@/common/dto/page.dto'
 import { Injectable } from '@nestjs/common'
@@ -21,9 +21,11 @@ export class RoleService {
   ) {}
 
   async create(createRoleDto: CreateRoleDto) {
+    const { menuIds, ...roleData } = createRoleDto
+
     // 检查角色名称是否已存在
     const existRoleName = await this.roleRepository.findOne({
-      where: { roleName: createRoleDto.roleName },
+      where: { roleName: roleData.roleName },
     })
 
     if (existRoleName)
@@ -31,13 +33,25 @@ export class RoleService {
 
     // 检查角色编码是否已存在
     const existRoleCode = await this.roleRepository.findOne({
-      where: { roleKey: createRoleDto.roleKey },
+      where: { roleKey: roleData.roleKey },
     })
 
     if (existRoleCode)
       throw new ApiException('角色编码已存在', ApiErrorCode.SERVER_ERROR)
 
-    await this.roleRepository.save(createRoleDto)
+    // 创建角色
+    const role = await this.roleRepository.save(roleData)
+
+    // 如果提供了菜单ID，则设置菜单权限
+    if (menuIds && menuIds.length > 0) {
+      const menus = await this.menuRepository.find({
+        where: {
+          menuId: In(menuIds),
+        },
+      })
+      role.menus = menus
+      await this.roleRepository.save(role)
+    }
 
     return '角色新增成功'
   }
@@ -52,6 +66,7 @@ export class RoleService {
     }
 
     const [list, total] = await this.roleRepository.findAndCount({
+      where: {},
       skip,
       take,
     })
@@ -73,38 +88,49 @@ export class RoleService {
     return existData
   }
 
-  async update(updateRoleDto: UpdateRoleDto) {
-    const { id } = updateRoleDto
+  async update(id: number, updateRoleDto: UpdateRoleDto) {
+    const { menuIds, ...roleData } = updateRoleDto
 
     // 检查是否存在
-    await this.findOne(id)
+    const role = await this.findOne(id)
 
-    await this.roleRepository.update(id, updateRoleDto)
+    // 更新角色基本信息
+    if (Object.keys(roleData).length > 0) {
+      await this.roleRepository.update(id, roleData)
+    }
+
+    // 如果提供了菜单ID，则更新菜单权限
+    if (menuIds !== undefined) {
+      if (menuIds.length > 0) {
+        const menus = await this.menuRepository.find({
+          where: {
+            menuId: In(menuIds),
+          },
+        })
+        role.menus = menus
+      } else {
+        // 如果menuIds为空数组，则清空菜单权限
+        role.menus = []
+      }
+      await this.roleRepository.save(role)
+    }
+
     return '角色修改成功'
   }
 
-  async setMenus(setMenusDto: SetMenusDto) {
-    const { roleId, menuIds } = setMenusDto
-
-    const role = await this.findOne(roleId)
-
-    const menus = await this.menuRepository.find({
+  async remove(id: number) {
+    const role = await this.roleRepository.findOne({
       where: {
-        menuId: In(menuIds),
+        roleId: id,
       },
     })
 
-    role.menus = menus
+    if (!role) {
+      throw new ApiException('角色不存在', ApiErrorCode.SERVER_ERROR)
+    }
 
-    await this.roleRepository.save(role)
-
-    return '菜单权限设置成功'
-  }
-
-  async remove(id: number) {
-    const role = await this.findOne(id)
-
-    await this.roleRepository.remove(role)
+    // 软删除 - DeleteDateColumn 自动处理
+    await this.roleRepository.softRemove(role)
     return '删除成功'
   }
 }
