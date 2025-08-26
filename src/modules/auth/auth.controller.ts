@@ -43,6 +43,7 @@ export class AuthController {
 
   @Public()
   @Post('refreshToken')
+  @HttpCode(200)
   @ApiOperation({ summary: '刷新令牌' })
   refreshToken(@Body() updateToken: { refreshToken: string }) {
     return this.authService.refreshToken(updateToken.refreshToken)

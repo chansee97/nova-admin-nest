@@ -43,12 +43,12 @@ export class CreateRoleDto {
     required: false,
     description: '角色状态',
     enum: [0, 1],
-    example: 1,
+    example: 0,
   })
   @IsNumber()
-  @IsIn([0, 1], { message: '角色状态只能是 0、1' })
+  @IsIn([0, 1], { message: '状态：0=正常，1=停用' })
   @IsOptional()
-  roleStatus?: number = 1
+  roleStatus?: number = 0
 
   @ApiProperty({
     required: false,

@@ -31,14 +31,15 @@ export class Role {
 
   @Column({
     type: 'int',
+    default: 0,
     comment: '显示顺序',
   })
   sort: number
 
   @Column({
     type: 'smallint',
-    default: 1,
-    comment: '角色状态（0停用 1正常）',
+    default: 0,
+    comment: '角色状态（0正常 1停用）',
   })
   roleStatus: number
 
@@ -68,13 +69,14 @@ export class Role {
 
   @Column({
     length: 500,
-    nullable: true,
+    default: '',
     comment: '备注',
   })
   remark: string
 
   @DeleteDateColumn({
     comment: '删除时间',
+    nullable: true,
   })
   deletedAt: Date | null
 

@@ -49,29 +49,29 @@ export class DictData {
 
   @Column({
     length: 100,
-    nullable: true,
+    default: '',
     comment: '样式属性（其他样式扩展）',
   })
   cssClass: string
 
   @Column({
     length: 100,
-    nullable: true,
+    default: '',
     comment: '表格回显样式',
   })
   listClass: string
 
   @Column({
-    type: 'smallint',
-    default: 0,
-    comment: '是否默认（0否 1是）',
+    type: 'boolean',
+    default: false,
+    comment: '是否默认',
   })
-  isDefault: number
+  isDefault: boolean
 
   @Column({
     type: 'smallint',
-    default: 1,
-    comment: '状态（0停用 1正常）',
+    default: 0,
+    comment: '状态（0正常 1停用）',
   })
   status: number
 
@@ -101,7 +101,7 @@ export class DictData {
 
   @Column({
     length: 500,
-    nullable: true,
+    default: '',
     comment: '备注',
   })
   remark: string

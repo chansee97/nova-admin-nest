@@ -46,7 +46,7 @@ export class RoleService {
     if (menuIds && menuIds.length > 0) {
       const menus = await this.menuRepository.find({
         where: {
-          menuId: In(menuIds),
+          id: In(menuIds),
         },
       })
       role.menus = menus
@@ -57,19 +57,22 @@ export class RoleService {
   }
 
   async findAll(searchQuery: SearchQuery) {
-    let skip = 0
-    let take = 0
+    // 设置默认分页参数，防止返回所有记录
+    const pageNum = searchQuery.pageNum || 1
+    const pageSize = searchQuery.pageSize || 10
 
-    if (searchQuery.pageNum && searchQuery.pageSize) {
-      skip = (searchQuery.pageNum - 1) * searchQuery.pageSize
-      take = searchQuery.pageSize
-    }
+    const skip = (pageNum - 1) * pageSize
+    const take = pageSize
 
     const [list, total] = await this.roleRepository.findAndCount({
-      where: {},
       skip,
       take,
+      order: {
+        sort: 'ASC',
+        createTime: 'DESC',
+      },
     })
+
     return {
       list,
       total,
@@ -104,7 +107,7 @@ export class RoleService {
       if (menuIds.length > 0) {
         const menus = await this.menuRepository.find({
           where: {
-            menuId: In(menuIds),
+            id: In(menuIds),
           },
         })
         role.menus = menus
@@ -129,7 +132,6 @@ export class RoleService {
       throw new ApiException('角色不存在', ApiErrorCode.SERVER_ERROR)
     }
 
-    // 软删除 - DeleteDateColumn 自动处理
     await this.roleRepository.softRemove(role)
     return '删除成功'
   }

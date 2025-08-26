@@ -52,13 +52,12 @@ export class DeptService {
 
   // 分页查询部门
   async findAll(searchQuery: SearchQuery) {
-    let skip = 0
-    let take = 0
+    // 设置默认分页参数，防止返回所有记录
+    const pageNum = searchQuery.pageNum || 1
+    const pageSize = searchQuery.pageSize || 10
 
-    if (searchQuery.pageNum && searchQuery.pageSize) {
-      skip = (searchQuery.pageNum - 1) * searchQuery.pageSize
-      take = searchQuery.pageSize
-    }
+    const skip = (pageNum - 1) * pageSize
+    const take = pageSize
 
     const [list, total] = await this.deptRepository.findAndCount({
       skip,
@@ -78,7 +77,7 @@ export class DeptService {
   // 获取部门树形结构
   async getDeptTree() {
     const depts = await this.deptRepository.find({
-      where: { status: 1 },
+      where: { status: 0 },
       order: { sort: 'ASC' },
     })
 

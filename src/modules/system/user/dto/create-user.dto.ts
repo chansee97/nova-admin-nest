@@ -105,12 +105,12 @@ export class CreateUserDto {
     required: false,
     description: '用户状态',
     enum: [0, 1],
-    example: 1,
+    example: 0,
   })
   @IsOptional()
   @IsNumber()
-  @IsIn([0, 1], { message: '状态只能是 0、1' })
-  userStatus?: number = 1
+  @IsIn([0, 1], { message: '状态：0=正常，1=停用' })
+  userStatus?: number = 0
 
   @ApiProperty({
     required: false,

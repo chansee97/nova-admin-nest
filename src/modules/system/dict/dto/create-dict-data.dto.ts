@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsIn,
   Length,
+  IsBoolean,
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
@@ -73,24 +74,23 @@ export class CreateDictDataDto {
   @ApiProperty({
     required: false,
     description: '是否默认',
-    enum: [0, 1],
-    example: 0,
+    type: Boolean,
+    example: false,
   })
   @IsOptional()
-  @IsNumber()
-  @IsIn([0, 1], { message: '是否默认只能是 0、1' })
-  isDefault?: number = 0
+  @IsBoolean()
+  isDefault?: boolean = false
 
   @ApiProperty({
     required: false,
     description: '状态',
     enum: [0, 1],
-    example: 1,
+    example: 0,
   })
   @IsOptional()
   @IsNumber()
-  @IsIn([0, 1], { message: '状态只能是 0、1' })
-  status?: number = 1
+  @IsIn([0, 1], { message: '状态：0=正常，1=停用' })
+  status?: number = 0
 
   @ApiProperty({ required: false, description: '备注信息', example: '男性' })
   @IsOptional()

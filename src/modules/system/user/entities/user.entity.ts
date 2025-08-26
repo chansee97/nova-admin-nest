@@ -42,7 +42,7 @@ export class User {
 
   @Column({
     length: 30,
-    nullable: true,
+    default: '',
     comment: '用户昵称',
   })
   nickName: string
@@ -88,8 +88,8 @@ export class User {
 
   @Column({
     type: 'smallint',
-    default: 1,
-    comment: '帐号状态（0停用 1正常）',
+    default: 0,
+    comment: '帐号状态（0正常 1停用）',
   })
   userStatus: number
 
@@ -119,13 +119,14 @@ export class User {
 
   @Column({
     length: 500,
-    nullable: true,
+    default: '',
     comment: '备注',
   })
   remark: string
 
   @DeleteDateColumn({
     comment: '删除时间',
+    nullable: true,
   })
   deletedAt: Date | null
 

@@ -1,11 +1,12 @@
 import type { Repository } from 'typeorm'
 import type { CreateMenuDto } from './dto/create-menu.dto'
 import type { UpdateMenuDto } from './dto/update-menu.dto'
-import type { SearchQuery } from '@/common/dto/page.dto'
+
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
+import { buildTree, buildSelectTree } from '@/utils'
 import { Menu } from './entities/menu.entity'
 
 @Injectable()
@@ -28,45 +29,36 @@ export class MenuService {
 
     // 检查菜单名称是否已存在
     const existMenu = await this.menuRepository.findOne({
-      where: { menuName: createMenuDto.menuName },
+      where: { title: createMenuDto.title },
     })
 
     if (existMenu)
       throw new ApiException('菜单名称已存在', ApiErrorCode.SERVER_ERROR)
 
     await this.menuRepository.save(createMenuDto)
-    return '菜单新增成功'
+
+    return
   }
 
-  async findAll(searchQuery: SearchQuery) {
-    let skip = 0
-    let take = 0
+  async findAll() {
+    // 菜单模块直接返回所有菜单
+    const list = await this.menuRepository.find()
 
-    if (searchQuery.pageNum && searchQuery.pageSize) {
-      skip = (searchQuery.pageNum - 1) * searchQuery.pageSize
-      take = searchQuery.pageSize
-    }
-
-    const [list, total] = await this.menuRepository.findAndCount({
-      where: {},
-      skip,
-      take,
-      order: { sort: 'ASC', createTime: 'DESC' },
-    })
-    return {
-      list,
-      total,
-    }
+    return list
   }
 
-  // 获取菜单树结构
-  async getMenuTree() {
+  // 获取菜单下拉树形结构
+  async getSelectTree() {
     const menus = await this.menuRepository.find({
-      where: { status: 1 },
+      where: { status: 0 },
       order: { sort: 'ASC' },
     })
 
-    return this.buildMenuTree(menus)
+    return buildSelectTree(menus, {
+      customID: 'id',
+      labelKey: 'title',
+      valueKey: 'id',
+    })
   }
 
   // 根据用户角色获取菜单权限
@@ -79,11 +71,13 @@ export class MenuService {
       .createQueryBuilder('menu')
       .innerJoin('menu.roles', 'role')
       .where('role.id IN (:...roleIds)', { roleIds })
-      .andWhere('menu.status = :status', { status: 1 })
+      .andWhere('menu.status = :status', { status: 0 })
       .orderBy('menu.sort', 'ASC')
       .getMany()
 
-    return this.buildMenuTree(menus)
+    return buildTree(menus, {
+      customID: 'id',
+    })
   }
 
   // 获取用户权限列表
@@ -96,26 +90,16 @@ export class MenuService {
       .createQueryBuilder('menu')
       .innerJoin('menu.roles', 'role')
       .where('role.id IN (:...roleIds)', { roleIds })
-      .andWhere('menu.status = :status', { status: 1 })
+      .andWhere('menu.status = :status', { status: 0 })
       .select(['menu.perms'])
       .getMany()
 
     return menus.map(menu => menu.perms)
   }
 
-  // 构建菜单树
-  private buildMenuTree(menus: Menu[], parentId: number | null = null): any[] {
-    return menus
-      .filter(menu => menu.parentId === parentId)
-      .map(menu => ({
-        ...menu,
-        children: this.buildMenuTree(menus, menu.menuId),
-      }))
-  }
-
   async findOne(id: number) {
     const existData = await this.menuRepository.findOne({
-      where: { menuId: id },
+      where: { id: id },
     })
 
     if (!existData)
@@ -129,13 +113,13 @@ export class MenuService {
 
     await this.menuRepository.update(id, updateMenuDto)
 
-    return '更新成功'
+    return
   }
 
   async remove(id: number) {
     const menu = await this.menuRepository.findOne({
       where: {
-        menuId: id,
+        id: id,
       },
     })
 
@@ -143,8 +127,7 @@ export class MenuService {
       throw new ApiException('菜单不存在', ApiErrorCode.SERVER_ERROR)
     }
 
-    // 软删除 - DeleteDateColumn 自动处理
     await this.menuRepository.softRemove(menu)
-    return '删除成功'
+    return
   }
 }

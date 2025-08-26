@@ -75,12 +75,12 @@ export class CreateDeptDto {
     required: false,
     description: '部门状态',
     enum: [0, 1],
-    example: 1,
+    example: 0,
   })
   @IsOptional()
   @IsNumber()
-  @IsIn([0, 1], { message: '状态只能是 0、1' })
-  status?: number = 1
+  @IsIn([0, 1], { message: '状态：0=正常，1=停用' })
+  status?: number = 0
 
   @ApiProperty({
     required: false,

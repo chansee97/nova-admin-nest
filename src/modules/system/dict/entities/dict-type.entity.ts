@@ -34,8 +34,8 @@ export class DictType {
 
   @Column({
     type: 'smallint',
-    default: 1,
-    comment: '状态（0停用 1正常）',
+    default: 0,
+    comment: '状态（0正常 1停用）',
   })
   status: number
 
@@ -65,7 +65,7 @@ export class DictType {
 
   @Column({
     length: 500,
-    nullable: true,
+    default: '',
     comment: '备注',
   })
   remark: string

@@ -1,8 +1,8 @@
 import 'reflect-metadata'
 
-import { ValidationPipe } from '@nestjs/common/pipes'
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { NestFactory } from '@nestjs/core'
+import { NestFactory, Reflector } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ApiExceptionsFilter, HttpExceptionFilter } from '@/common/filters'
 import { TransformInterceptor } from '@/common/interceptors'
@@ -16,6 +16,9 @@ async function bootstrap() {
 
   // 全局拦截器
   app.useGlobalInterceptors(new TransformInterceptor())
+
+  // 全局序列化拦截器 - 处理 @Exclude() 等装饰器
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
 
   // 错误过滤器
   app.useGlobalFilters(new HttpExceptionFilter())

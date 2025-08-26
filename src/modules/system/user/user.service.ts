@@ -43,29 +43,23 @@ export class UserService {
   }
 
   async findAll(searchQuery: SearchQuery) {
-    let skip = 0
-    let take = 0
+    // 设置默认分页参数，防止返回所有记录
+    const pageNum = searchQuery.pageNum || 1
+    const pageSize = searchQuery.pageSize || 10
 
-    if (searchQuery.pageNum && searchQuery.pageSize) {
-      skip = (searchQuery.pageNum - 1) * searchQuery.pageSize
-      take = searchQuery.pageSize
-    }
+    const skip = (pageNum - 1) * pageSize
+    const take = pageSize
 
-    const queryBuilder = this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.dept', 'dept')
-      .where('1=1')
-      .andWhere('user.userStatus = :userStatus', { userStatus: 1 })
-
-    if (skip > 0) {
-      queryBuilder.skip(skip)
-    }
-
-    if (take > 0) {
-      queryBuilder.take(take)
-    }
-
-    const [list, total] = await queryBuilder.getManyAndCount()
+    const [list, total] = await this.userRepository.findAndCount({
+      where: {
+        userStatus: 0,
+      },
+      skip,
+      take,
+      order: {
+        createTime: 'DESC',
+      },
+    })
 
     return {
       list,
@@ -149,7 +143,6 @@ export class UserService {
       throw new ApiException('用户不存在', ApiErrorCode.USER_NOTEXIST)
     }
 
-    // 软删除 - DeleteDateColumn 自动处理
     await this.userRepository.softRemove(user)
 
     return '删除成功'
@@ -180,8 +173,7 @@ export class UserService {
     if (user) {
       const menus = user.roles.flatMap(role => role.menus)
       const uniqueMenus = menus.filter(
-        (menu, index, self) =>
-          index === self.findIndex(m => m.menuId === menu.menuId),
+        (menu, index, self) => index === self.findIndex(m => m.id === menu.id),
       )
 
       return this.buildMenuTree(uniqueMenus)

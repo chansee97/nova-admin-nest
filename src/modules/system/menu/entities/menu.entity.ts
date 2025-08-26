@@ -17,19 +17,27 @@ import { Role } from '../../role/entities/role.entity'
 @Index(['perms'])
 export class Menu {
   @PrimaryGeneratedColumn({ comment: '菜单ID' })
-  menuId: number
+  id: number
 
   @Column({
     length: 50,
     comment: '菜单名称',
   })
-  menuName: string
+  title: string
 
   @Column({
     default: 0,
     comment: '父菜单ID',
   })
   parentId: number
+
+  @Column({
+    type: 'enum',
+    enum: ['directory', 'page', 'permission'],
+    default: 'directory',
+    comment: '菜单类型（directory目录 page菜单 permission权限）',
+  })
+  menuType: 'directory' | 'page' | 'permission'
 
   @Column({
     type: 'int',
@@ -47,45 +55,59 @@ export class Menu {
 
   @Column({
     length: 255,
-    nullable: true,
+    default: '',
     comment: '组件路径',
   })
   component: string
 
   @Column({
-    type: 'smallint',
-    default: 0,
-    comment: '是否为外链（0否 1是）',
+    length: 200,
+    default: '',
+    comment: '高亮菜单路径',
   })
-  isFrame: number
+  activePath: string
 
   @Column({
-    type: 'smallint',
-    default: 1,
-    comment: '是否缓存（0不缓存 1缓存）',
+    length: 100,
+    default: '',
+    comment: '菜单图标',
   })
-  isCache: number
+  icon: string
 
   @Column({
-    type: 'enum',
-    enum: ['M', 'C', 'F'],
-    comment: '菜单类型（M目录 C菜单 F按钮）',
+    length: 100,
+    default: '',
+    comment: '国际化标识Key',
   })
-  menuType: 'M' | 'C' | 'F'
+  i18nKey: string
 
   @Column({
-    type: 'smallint',
-    default: 1,
-    comment: '是否显示（0隐藏 1显示）',
+    type: 'boolean',
+    default: true,
+    comment: '菜单显示状态',
   })
-  visible: number
+  menuVisible: boolean
 
   @Column({
-    type: 'smallint',
-    default: 1,
-    comment: '菜单状态（0停用 1正常）',
+    type: 'boolean',
+    default: true,
+    comment: '标签栏显示状态',
   })
-  status: number
+  tabVisible: boolean
+
+  @Column({
+    type: 'boolean',
+    default: false,
+    comment: '是否为外链',
+  })
+  isLink: boolean
+
+  @Column({
+    type: 'boolean',
+    default: false,
+    comment: '是否缓存',
+  })
+  keepAlive: boolean
 
   @Column({
     length: 100,
@@ -95,11 +117,11 @@ export class Menu {
   perms: string
 
   @Column({
-    length: 100,
-    default: '#',
-    comment: '菜单图标',
+    type: 'smallint',
+    default: 0,
+    comment: '菜单状态（0正常 1停用）',
   })
-  icon: string
+  status: number
 
   @Column({
     length: 64,
@@ -134,6 +156,7 @@ export class Menu {
 
   @DeleteDateColumn({
     comment: '删除时间',
+    nullable: true,
   })
   deletedAt: Date | null
 

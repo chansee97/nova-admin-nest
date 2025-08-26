@@ -37,22 +37,24 @@ export class DictTypeService {
 
   // 分页查询字典类型
   async findAll(searchQuery: SearchQuery) {
-    const { pageNum = 1, pageSize = 10 } = searchQuery
+    // 设置默认分页参数，防止返回所有记录
+    const pageNum = searchQuery.pageNum || 1
+    const pageSize = searchQuery.pageSize || 10
+
     const skip = (pageNum - 1) * pageSize
+    const take = pageSize
 
     const [list, total] = await this.dictTypeRepository.findAndCount({
+      skip,
+      take,
       order: {
         createTime: 'DESC',
       },
-      skip,
-      take: pageSize,
     })
 
     return {
       list,
       total,
-      pageNum,
-      pageSize,
     }
   }
 
@@ -77,7 +79,7 @@ export class DictTypeService {
     const result = await this.dictTypeRepository.findOne({
       where: {
         dictType,
-        status: 1,
+        status: 0,
       },
       relations: ['dictDataList'],
     })
@@ -88,7 +90,7 @@ export class DictTypeService {
 
     // 过滤启用的字典数据并排序
     result.dictDataList = result.dictDataList
-      .filter(item => item.status === 1)
+      .filter(item => item.status === 0)
       .sort((a, b) => a.dictSort - b.dictSort)
 
     return result
@@ -161,7 +163,7 @@ export class DictTypeService {
   async getOptions() {
     const dictTypes = await this.dictTypeRepository.find({
       where: {
-        status: 1,
+        status: 0,
       },
       select: ['dictId', 'dictName', 'dictType'],
       order: {

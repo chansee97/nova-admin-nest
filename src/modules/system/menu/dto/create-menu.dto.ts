@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsIn,
   IsNotEmpty,
+  IsBoolean,
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
@@ -17,7 +18,7 @@ export class CreateMenuDto {
   })
   @IsNotEmpty({ message: '菜单名不可为空' })
   @IsString()
-  menuName: string
+  title: string
 
   @ApiProperty({
     required: false,
@@ -58,56 +59,55 @@ export class CreateMenuDto {
   @ApiProperty({
     required: false,
     description: '是否为外链',
-    enum: [0, 1],
-    example: 0,
+    type: Boolean,
+    example: false,
   })
-  @IsNumber()
-  @IsIn([0, 1], { message: '是否为外链只能是 0、1' })
   @IsOptional()
-  isFrame?: number = 0
+  @IsBoolean()
+  isLink?: boolean = false
 
   @ApiProperty({
     required: false,
     description: '是否缓存',
-    enum: [0, 1],
-    example: 1,
+    type: Boolean,
+    example: true,
   })
-  @IsNumber()
-  @IsIn([0, 1], { message: '是否缓存只能是 0、1' })
   @IsOptional()
-  isCache?: number = 1
+  @IsBoolean()
+  keepAlive?: boolean = true
 
   @ApiProperty({
     required: true,
     description: '菜单类型',
-    enum: ['M', 'C', 'F'],
-    example: 'M',
+    enum: ['directory', 'page', 'permission'],
+    example: 'directory',
   })
   @IsString()
-  @IsIn(['M', 'C', 'F'], { message: '菜单类型只能是 M、C、F' })
-  menuType: 'M' | 'C' | 'F'
+  @IsIn(['directory', 'page', 'permission'], {
+    message: '菜单类型只能是 directory、page、permission',
+  })
+  menuType: 'directory' | 'page' | 'permission'
 
   @ApiProperty({
     required: false,
-    description: '显示状态',
-    enum: [0, 1],
-    example: 1,
+    description: '菜单显示状态',
+    type: Boolean,
+    example: true,
   })
-  @IsNumber()
-  @IsIn([0, 1], { message: '显示状态只能是 0、1' })
   @IsOptional()
-  visible?: number = 1
+  @IsBoolean()
+  menuVisible?: boolean = true
 
   @ApiProperty({
     required: false,
     description: '菜单状态',
     enum: [0, 1],
-    example: 1,
+    example: 0,
   })
   @IsNumber()
-  @IsIn([0, 1], { message: '菜单状态只能是 0、1' })
+  @IsIn([0, 1], { message: '菜单状态：0=正常，1=停用' })
   @IsOptional()
-  status?: number = 1
+  status?: number = 0
 
   @ApiProperty({
     required: false,
@@ -126,6 +126,34 @@ export class CreateMenuDto {
   @IsString()
   @IsOptional()
   icon?: string = '#'
+
+  @ApiProperty({
+    required: false,
+    description: '国际化标识Key',
+    example: 'route.system',
+  })
+  @IsString()
+  @IsOptional()
+  i18nKey?: string = ''
+
+  @ApiProperty({
+    required: false,
+    description: '高亮菜单路径',
+    example: '/system/user',
+  })
+  @IsString()
+  @IsOptional()
+  activePath?: string = ''
+
+  @ApiProperty({
+    required: false,
+    description: '标签栏显示状态',
+    type: Boolean,
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  tabVisible?: boolean = true
 
   @ApiProperty({
     required: false,

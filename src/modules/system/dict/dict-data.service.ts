@@ -47,30 +47,32 @@ export class DictDataService {
 
   // 分页查询字典数据
   async findAll(searchQuery: SearchQuery & { dictType?: string }) {
-    const { pageNum = 1, pageSize = 10, dictType } = searchQuery
+    // 设置默认分页参数，防止返回所有记录
+    const pageNum = searchQuery.pageNum || 1
+    const pageSize = searchQuery.pageSize || 10
+
     const skip = (pageNum - 1) * pageSize
+    const take = pageSize
 
     const whereCondition: any = {}
 
-    if (dictType) {
-      whereCondition.dictType = dictType
+    if (searchQuery.dictType) {
+      whereCondition.dictType = searchQuery.dictType
     }
 
     const [list, total] = await this.dictDataRepository.findAndCount({
       where: whereCondition,
+      skip,
+      take,
       order: {
         dictSort: 'ASC',
         createTime: 'DESC',
       },
-      skip,
-      take: pageSize,
     })
 
     return {
       list,
       total,
-      pageNum,
-      pageSize,
     }
   }
 
@@ -94,7 +96,7 @@ export class DictDataService {
     const dictDataList = await this.dictDataRepository.find({
       where: {
         dictType,
-        status: 1,
+        status: 0,
       },
       order: {
         dictSort: 'ASC',
