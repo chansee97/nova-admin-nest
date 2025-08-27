@@ -46,11 +46,11 @@ export class MenuController {
     return this.menuService.findAll()
   }
 
-  @Get('selectTree')
+  @Get('options')
   @ApiOperation({ summary: '获取菜单下拉树形结构' })
   @Permissions('system:menu:query')
   selectTree() {
-    return this.menuService.getSelectTree()
+    return this.menuService.findOptions()
   }
 
   @Get(':id')

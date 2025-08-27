@@ -47,6 +47,13 @@ export class DeptController {
     return this.deptService.findAll(searchQuery)
   }
 
+  @Get('options')
+  @ApiOperation({ summary: '查询所有可选部门' })
+  @Permissions('system:dept:query')
+  findOptions() {
+    return this.deptService.findOptions()
+  }
+
   @ApiOperation({ summary: '查询部门详情' })
   @ApiParam({ name: 'id', description: '部门ID', example: 1 })
   @Permissions('system:dept:query')

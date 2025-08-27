@@ -82,6 +82,13 @@ export class RoleController {
     return this.roleService.findAll(searchQuery)
   }
 
+  @Get('options')
+  @ApiOperation({ summary: '查询所有可选角色' })
+  @Permissions('system:role:query')
+  findOptions() {
+    return this.roleService.findOptions()
+  }
+
   @Get(':id')
   @ApiOperation({ summary: '查询角色详情' })
   @ApiParam({ name: 'id', description: '角色ID', example: 1 })

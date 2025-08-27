@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { Dept } from './entities/dept.entity'
+import { buildSelectTree } from '@/utils'
 
 @Injectable()
 export class DeptService {
@@ -72,6 +73,24 @@ export class DeptService {
       list,
       total,
     }
+  }
+
+  async findOptions() {
+    const depts = await this.deptRepository.find({
+      where: { status: 0 }, // 只查询正常状态的部门
+      select: ['deptId', 'deptName', 'parentId'], // 返回需要的字段
+      order: {
+        sort: 'ASC',
+        createTime: 'ASC',
+      },
+    })
+
+    // 构建树形结构
+    return buildSelectTree(depts, {
+      customID: 'deptId',
+      labelKey: 'deptName',
+      valueKey: 'deptId',
+    })
   }
 
   // 获取部门树形结构

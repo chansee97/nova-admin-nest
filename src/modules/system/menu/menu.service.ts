@@ -1,9 +1,9 @@
 import type { Repository } from 'typeorm'
 import type { CreateMenuDto } from './dto/create-menu.dto'
 import type { UpdateMenuDto } from './dto/update-menu.dto'
-
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
+import { In } from 'typeorm'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { buildTree, buildSelectTree } from '@/utils'
@@ -48,9 +48,13 @@ export class MenuService {
   }
 
   // 获取菜单下拉树形结构
-  async getSelectTree() {
+  async findOptions() {
     const menus = await this.menuRepository.find({
-      where: { status: 0 },
+      where: {
+        status: 0,
+        menuType: In(['directory', 'page']), // 排除permission类型，只返回目录和页面
+      },
+      select: ['id', 'title', 'parentId'], // 返回需要的字段
       order: { sort: 'ASC' },
     })
 

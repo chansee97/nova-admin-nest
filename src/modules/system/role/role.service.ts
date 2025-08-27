@@ -79,6 +79,22 @@ export class RoleService {
     }
   }
 
+  async findOptions() {
+    const roles = await this.roleRepository.find({
+      where: { roleStatus: 0 }, // 只查询正常状态的角色
+      select: ['roleId', 'roleName'], // 只返回需要的字段
+      order: {
+        sort: 'ASC',
+        createTime: 'ASC',
+      },
+    })
+
+    return roles.map(role => ({
+      value: role.roleId,
+      label: role.roleName,
+    }))
+  }
+
   async findOne(id: number) {
     const existData = await this.roleRepository.findOne({
       where: { roleId: id },
