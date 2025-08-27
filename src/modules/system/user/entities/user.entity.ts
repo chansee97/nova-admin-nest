@@ -13,6 +13,7 @@ import {
   DeleteDateColumn,
 } from 'typeorm'
 import { Exclude } from 'class-transformer'
+import { DateFormat } from '@/common/decorators'
 import { Role } from '@/modules/system/role/entities/role.entity'
 import { Dept } from '@/modules/system/dept/entities/dept.entity'
 import { encryptData } from '@/utils/crypto'
@@ -103,6 +104,7 @@ export class User {
   @CreateDateColumn({
     comment: '创建时间',
   })
+  @DateFormat()
   createTime: Date
 
   @Column({
@@ -115,6 +117,7 @@ export class User {
   @UpdateDateColumn({
     comment: '更新时间',
   })
+  @DateFormat()
   updateTime: Date
 
   @Column({
@@ -128,6 +131,7 @@ export class User {
     comment: '删除时间',
     nullable: true,
   })
+  @DateFormat()
   deletedAt: Date | null
 
   // 多个用户属于一个部门

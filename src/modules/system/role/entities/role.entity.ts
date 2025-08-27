@@ -10,6 +10,7 @@ import {
 } from 'typeorm'
 import { Menu } from '@/modules/system/menu/entities/menu.entity'
 import { User } from '@/modules/system/user/entities/user.entity'
+import { DateFormat } from '@/common/decorators'
 
 @Entity('sys_role')
 export class Role {
@@ -53,6 +54,7 @@ export class Role {
   @CreateDateColumn({
     comment: '创建时间',
   })
+  @DateFormat()
   createTime: Date
 
   @Column({
@@ -65,6 +67,7 @@ export class Role {
   @UpdateDateColumn({
     comment: '更新时间',
   })
+  @DateFormat()
   updateTime: Date
 
   @Column({
@@ -78,6 +81,7 @@ export class Role {
     comment: '删除时间',
     nullable: true,
   })
+  @DateFormat()
   deletedAt: Date | null
 
   // 角色拥有的菜单权限（多对多）

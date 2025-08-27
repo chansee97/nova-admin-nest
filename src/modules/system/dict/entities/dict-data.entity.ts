@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
+import { DateFormat } from '@/common/decorators'
 
 @Entity('sys_dict_data')
 @Index(['dictType'])
@@ -85,6 +86,7 @@ export class DictData {
   @CreateDateColumn({
     comment: '创建时间',
   })
+  @DateFormat()
   createTime: Date
 
   @Column({
@@ -97,6 +99,7 @@ export class DictData {
   @UpdateDateColumn({
     comment: '更新时间',
   })
+  @DateFormat()
   updateTime: Date
 
   @Column({

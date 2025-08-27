@@ -9,6 +9,7 @@ import {
   DeleteDateColumn,
 } from 'typeorm'
 import { Role } from '../../role/entities/role.entity'
+import { DateFormat } from '@/common/decorators'
 
 @Entity('sys_menu')
 @Index(['parentId', 'sort'])
@@ -133,6 +134,7 @@ export class Menu {
   @CreateDateColumn({
     comment: '创建时间',
   })
+  @DateFormat()
   createTime: Date
 
   @Column({
@@ -145,6 +147,7 @@ export class Menu {
   @UpdateDateColumn({
     comment: '更新时间',
   })
+  @DateFormat()
   updateTime: Date
 
   @Column({
@@ -158,6 +161,7 @@ export class Menu {
     comment: '删除时间',
     nullable: true,
   })
+  @DateFormat()
   deletedAt: Date | null
 
   // 角色关联（多对多）

@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm'
 import { User } from '@/modules/system/user/entities/user.entity'
+import { DateFormat } from '@/common/decorators'
 
 @Entity('sys_dept')
 @Index(['parentId', 'sort'])
@@ -84,6 +85,7 @@ export class Dept {
   @CreateDateColumn({
     comment: '创建时间',
   })
+  @DateFormat()
   createTime: Date
 
   @Column({
@@ -96,6 +98,7 @@ export class Dept {
   @UpdateDateColumn({
     comment: '更新时间',
   })
+  @DateFormat()
   updateTime: Date
 
   @Column({
