@@ -42,9 +42,6 @@ export class CreateUserDto {
   })
   @IsOptional()
   @IsString()
-  @Length(1, 30, {
-    message: '用户昵称长度1-30',
-  })
   nickName?: string
 
   @ApiProperty({
@@ -110,7 +107,7 @@ export class CreateUserDto {
   @IsOptional()
   @IsNumber()
   @IsIn([0, 1], { message: '状态：0=正常，1=停用' })
-  userStatus?: number = 0
+  status?: number = 0
 
   @ApiProperty({
     required: false,

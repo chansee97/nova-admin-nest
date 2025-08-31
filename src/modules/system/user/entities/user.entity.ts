@@ -22,10 +22,10 @@ import { encryptData } from '@/utils/crypto'
 @Index(['username'])
 @Index(['phone'])
 @Index(['email'])
-@Index(['userStatus', 'deletedAt'])
+@Index(['status', 'deletedAt'])
 export class User {
   @PrimaryGeneratedColumn({ comment: '用户ID' })
-  userId: number
+  id: number
 
   @Column({
     type: 'integer',
@@ -92,27 +92,13 @@ export class User {
     default: 0,
     comment: '帐号状态（0正常 1停用）',
   })
-  userStatus: number
-
-  @Column({
-    length: 64,
-    default: '',
-    comment: '创建者',
-  })
-  createBy: string
+  status: number
 
   @CreateDateColumn({
     comment: '创建时间',
   })
   @DateFormat()
   createTime: Date
-
-  @Column({
-    length: 64,
-    default: '',
-    comment: '更新者',
-  })
-  updateBy: string
 
   @UpdateDateColumn({
     comment: '更新时间',

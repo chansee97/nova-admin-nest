@@ -5,7 +5,7 @@ import type { UpdateRoleDto } from './dto/update-role.dto'
 import type { SearchQuery } from '@/common/dto/page.dto'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { In } from 'typeorm'
+import { In, Like } from 'typeorm'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { Menu } from '../menu/entities/menu.entity'
@@ -40,7 +40,8 @@ export class RoleService {
       throw new ApiException('角色编码已存在', ApiErrorCode.SERVER_ERROR)
 
     // 创建角色
-    const role = await this.roleRepository.save(roleData)
+    const role = this.roleRepository.create(roleData)
+    await this.roleRepository.save(role)
 
     // 如果提供了菜单ID，则设置菜单权限
     if (menuIds && menuIds.length > 0) {
@@ -56,7 +57,13 @@ export class RoleService {
     return '角色新增成功'
   }
 
-  async findAll(searchQuery: SearchQuery) {
+  async findAll(
+    searchQuery: SearchQuery & {
+      roleName?: string
+      roleKey?: string
+      status?: number
+    },
+  ) {
     // 设置默认分页参数，防止返回所有记录
     const pageNum = searchQuery.pageNum || 1
     const pageSize = searchQuery.pageSize || 10
@@ -64,11 +71,26 @@ export class RoleService {
     const skip = (pageNum - 1) * pageSize
     const take = pageSize
 
+    // 构建查询条件
+    const where: any = {}
+
+    if (searchQuery.roleName) {
+      where.roleName = Like(`%${searchQuery.roleName}%`)
+    }
+
+    if (searchQuery.roleKey) {
+      where.roleKey = Like(`%${searchQuery.roleKey}%`)
+    }
+
+    if (searchQuery.status !== undefined) {
+      where.status = searchQuery.status
+    }
+
     const [list, total] = await this.roleRepository.findAndCount({
+      where,
       skip,
       take,
       order: {
-        sort: 'ASC',
         createTime: 'DESC',
       },
     })
@@ -81,23 +103,22 @@ export class RoleService {
 
   async findOptions() {
     const roles = await this.roleRepository.find({
-      where: { roleStatus: 0 }, // 只查询正常状态的角色
-      select: ['roleId', 'roleName'], // 只返回需要的字段
+      where: { status: 0 }, // 只查询正常状态的角色
+      select: ['id', 'roleName'], // 只返回需要的字段
       order: {
-        sort: 'ASC',
         createTime: 'ASC',
       },
     })
 
     return roles.map(role => ({
-      value: role.roleId,
+      value: role.id,
       label: role.roleName,
     }))
   }
 
   async findOne(id: number) {
     const existData = await this.roleRepository.findOne({
-      where: { roleId: id },
+      where: { id: id },
       relations: ['menus'],
     })
 
@@ -140,7 +161,7 @@ export class RoleService {
   async remove(id: number) {
     const role = await this.roleRepository.findOne({
       where: {
-        roleId: id,
+        id: id,
       },
     })
 

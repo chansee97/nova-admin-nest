@@ -31,9 +31,6 @@ export class AuthService {
 
     // 验证用户名密码
     const user = await this.validateUser(username, password)
-    if (!user) {
-      throw new ApiException('密码错误', ApiErrorCode.USER_PASSWORD_INVALID)
-    }
 
     // 生成 Token
     const token = this.generateToken(user)
@@ -45,7 +42,7 @@ export class AuthService {
 
     // JWT payload 只包含用户ID
     const payload = {
-      userId: user.userId,
+      userId: user.id,
     }
 
     const result: any = {
@@ -64,11 +61,15 @@ export class AuthService {
 
   async validateUser(username: string, password: string): Promise<User | null> {
     const user = await this.userService.findOneByUserName(username)
-    if (user && user.password === encryptData(password)) {
-      delete user.password
-      return user
+    console.log(user)
+    if (!user) {
+      throw new ApiException('用户不存在', ApiErrorCode.SERVER_ERROR)
     }
-    return null
+    if (user.password !== encryptData(password)) {
+      throw new ApiException('密码错误', ApiErrorCode.SERVER_ERROR)
+    }
+    delete user.password
+    return user
   }
 
   verifyToken(token: string) {

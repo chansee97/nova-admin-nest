@@ -1,9 +1,9 @@
 import type { Repository } from 'typeorm'
+import { In, Like } from 'typeorm'
 import type { CreateMenuDto } from './dto/create-menu.dto'
 import type { UpdateMenuDto } from './dto/update-menu.dto'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { In } from 'typeorm'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { buildTree, buildSelectTree } from '@/utils'
@@ -35,14 +35,33 @@ export class MenuService {
     if (existMenu)
       throw new ApiException('菜单名称已存在', ApiErrorCode.SERVER_ERROR)
 
-    await this.menuRepository.save(createMenuDto)
+    // 创建新的菜单实体
+    const menu = this.menuRepository.create(createMenuDto)
+    const savedMenu = await this.menuRepository.save(menu)
 
-    return
+    return savedMenu
   }
 
-  async findAll() {
-    // 菜单模块直接返回所有菜单
-    const list = await this.menuRepository.find()
+  async findAll(searchQuery: { title?: string; status?: number } = {}) {
+    // 构建查询条件
+    const where: any = {}
+
+    if (searchQuery.title) {
+      // 使用 LIKE 进行模糊搜索，支持中文
+      where.title = Like(`%${searchQuery.title}%`)
+    }
+
+    if (searchQuery.status !== undefined) {
+      where.status = searchQuery.status
+    }
+
+    const list = await this.menuRepository.find({
+      where,
+      order: {
+        sort: 'ASC',
+        createTime: 'DESC',
+      },
+    })
 
     return list
   }

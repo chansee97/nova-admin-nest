@@ -7,8 +7,15 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger'
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger'
 import { DictTypeService } from './dict-type.service'
 import { DictDataService } from './dict-data.service'
 import { CreateDictTypeDto } from './dto/create-dict-type.dto'
@@ -36,8 +43,40 @@ export class DictController {
 
   @Get('types')
   @ApiOperation({ summary: '字典类型-列表' })
-  findDictTypePage() {
-    return this.dictTypeService.findAll({})
+  @ApiQuery({
+    name: 'pageNum',
+    required: false,
+    description: '页码',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: '每页数量',
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    description: '字典名称',
+    example: '用户性别',
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: '字典类型',
+    example: 'sys_user_sex',
+  })
+  findDictTypePage(
+    @Query()
+    query: {
+      pageNum?: number
+      pageSize?: number
+      name?: string
+      type?: string
+    },
+  ) {
+    return this.dictTypeService.findAll(query)
   }
 
   @Get('types/:id')
@@ -76,8 +115,54 @@ export class DictController {
 
   @Get('data')
   @ApiOperation({ summary: '字典数据-列表' })
-  findDictDataPage() {
-    return this.dictDataService.findAll({})
+  @ApiQuery({
+    name: 'pageNum',
+    required: false,
+    description: '页码',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: '每页数量',
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'dictType',
+    required: false,
+    description: '字典类型',
+    example: 'sys_user_sex',
+  })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    description: '字典标签',
+    example: '男',
+  })
+  @ApiQuery({
+    name: 'value',
+    required: false,
+    description: '字典键值',
+    example: '1',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    description: '状态（0正常 1停用）',
+    example: 0,
+  })
+  findDictDataPage(
+    @Query()
+    query: {
+      pageNum?: number
+      pageSize?: number
+      dictType?: string
+      name?: string
+      value?: string
+      status?: number
+    },
+  ) {
+    return this.dictDataService.findAll(query)
   }
 
   @Get('data/:id')

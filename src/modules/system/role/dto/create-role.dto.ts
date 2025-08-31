@@ -32,14 +32,6 @@ export class CreateRoleDto {
   roleKey: string
 
   @ApiProperty({
-    required: true,
-    description: '显示顺序',
-    example: 1,
-  })
-  @IsNumber()
-  sort: number
-
-  @ApiProperty({
     required: false,
     description: '角色状态',
     enum: [0, 1],
@@ -48,7 +40,7 @@ export class CreateRoleDto {
   @IsNumber()
   @IsIn([0, 1], { message: '状态：0=正常，1=停用' })
   @IsOptional()
-  roleStatus?: number = 0
+  status?: number = 0
 
   @ApiProperty({
     required: false,

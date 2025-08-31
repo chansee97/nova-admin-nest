@@ -17,7 +17,7 @@ export class Dept {
   @PrimaryGeneratedColumn({
     comment: '部门ID',
   })
-  deptId: number
+  id: number
 
   @Column({
     type: 'integer',
@@ -75,25 +75,11 @@ export class Dept {
   })
   status: number
 
-  @Column({
-    length: 64,
-    default: '',
-    comment: '创建者',
-  })
-  createBy: string
-
   @CreateDateColumn({
     comment: '创建时间',
   })
   @DateFormat()
   createTime: Date
-
-  @Column({
-    length: 64,
-    default: '',
-    comment: '更新者',
-  })
-  updateBy: string
 
   @UpdateDateColumn({
     comment: '更新时间',

@@ -1,6 +1,5 @@
 import { CreateDeptDto } from './dto/create-dept.dto'
 import { UpdateDeptDto } from './dto/update-dept.dto'
-import { SearchQuery } from '@/common/dto'
 import { DeptService } from './dept.service'
 import {
   Body,
@@ -43,12 +42,12 @@ export class DeptController {
   @ApiOperation({ summary: '分页查询部门' })
   @Permissions('system:dept:query')
   @Get()
-  findAll(@Query() searchQuery: SearchQuery) {
-    return this.deptService.findAll(searchQuery)
+  findAll(@Query() query: { deptName?: string; status?: number }) {
+    return this.deptService.findAll(query)
   }
 
   @Get('options')
-  @ApiOperation({ summary: '查询所有可选部门' })
+  @ApiOperation({ summary: '部门下拉选项' })
   @Permissions('system:dept:query')
   findOptions() {
     return this.deptService.findOptions()
@@ -76,12 +75,5 @@ export class DeptController {
   @Permissions('system:dept:remove')
   remove(@Param('id') id: string) {
     return this.deptService.remove(+id)
-  }
-
-  @ApiOperation({ summary: '获取部门树形结构' })
-  @Permissions('system:dept:query')
-  @Get('tree')
-  getDeptTree() {
-    return this.deptService.getDeptTree()
   }
 }

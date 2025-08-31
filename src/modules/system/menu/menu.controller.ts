@@ -11,6 +11,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -42,12 +43,12 @@ export class MenuController {
   @Get()
   @ApiOperation({ summary: '查询所有菜单' })
   @Permissions('system:menu:query')
-  findAll() {
-    return this.menuService.findAll()
+  findAll(@Query() query: { title?: string; status?: number }) {
+    return this.menuService.findAll(query)
   }
 
   @Get('options')
-  @ApiOperation({ summary: '获取菜单下拉树形结构' })
+  @ApiOperation({ summary: '菜单下拉选项' })
   @Permissions('system:menu:query')
   selectTree() {
     return this.menuService.findOptions()

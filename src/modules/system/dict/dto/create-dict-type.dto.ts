@@ -22,7 +22,7 @@ export class CreateDictTypeDto {
   @Length(1, 100, {
     message: '字典名称长度1-100',
   })
-  dictName: string
+  name: string
 
   @ApiProperty({
     required: true,
@@ -39,7 +39,7 @@ export class CreateDictTypeDto {
   @Matches(/^[a-z0-9_]+$/, {
     message: '字典类型只能包含小写字母、数字和下划线',
   })
-  dictType: string
+  type: string
 
   @ApiProperty({
     required: false,

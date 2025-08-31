@@ -4,6 +4,7 @@ import type { UpdateDictTypeDto } from './dto/update-dict-type.dto'
 import type { SearchQuery } from '@/common/dto'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
+import { Like } from 'typeorm'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { DictType } from './entities/dict-type.entity'
@@ -23,7 +24,7 @@ export class DictTypeService {
     // 检查字典类型是否已存在
     const existingDictType = await this.dictTypeRepository.findOne({
       where: {
-        dictType: createDictTypeDto.dictType,
+        type: createDictTypeDto.type,
       },
     })
 
@@ -36,7 +37,7 @@ export class DictTypeService {
   }
 
   // 分页查询字典类型
-  async findAll(searchQuery: SearchQuery) {
+  async findAll(searchQuery: SearchQuery & { name?: string; type?: string }) {
     // 设置默认分页参数，防止返回所有记录
     const pageNum = searchQuery.pageNum || 1
     const pageSize = searchQuery.pageSize || 10
@@ -44,7 +45,15 @@ export class DictTypeService {
     const skip = (pageNum - 1) * pageSize
     const take = pageSize
 
+    // 构建查询条件
+    const where: any = {}
+
+    if (searchQuery.name) {
+      where.name = Like(`%${searchQuery.name}%`)
+    }
+
     const [list, total] = await this.dictTypeRepository.findAndCount({
+      where,
       skip,
       take,
       order: {
@@ -62,7 +71,7 @@ export class DictTypeService {
   async findOne(id: number) {
     const dictType = await this.dictTypeRepository.findOne({
       where: {
-        dictId: id,
+        id: id,
       },
       relations: ['dictDataList'],
     })
@@ -78,7 +87,7 @@ export class DictTypeService {
   async findByType(dictType: string) {
     const result = await this.dictTypeRepository.findOne({
       where: {
-        dictType,
+        type: dictType,
         status: 0,
       },
       relations: ['dictDataList'],
@@ -91,18 +100,18 @@ export class DictTypeService {
     // 过滤启用的字典数据并排序
     result.dictDataList = result.dictDataList
       .filter(item => item.status === 0)
-      .sort((a, b) => a.dictSort - b.dictSort)
+      .sort((a, b) => a.sort - b.sort)
 
     return result
   }
 
   // 更新字典类型
-  async update(dictId: number, updateDictTypeDto: UpdateDictTypeDto) {
+  async update(id: number, updateDictTypeDto: UpdateDictTypeDto) {
     const updateData = updateDictTypeDto
 
     const dictType = await this.dictTypeRepository.findOne({
       where: {
-        dictId,
+        id,
       },
     })
 
@@ -111,14 +120,14 @@ export class DictTypeService {
     }
 
     // 检查字典类型是否重复（排除自己）
-    if (updateData.dictType) {
+    if (updateData.type) {
       const existingDictType = await this.dictTypeRepository.findOne({
         where: {
-          dictType: updateData.dictType,
+          type: updateData.type,
         },
       })
 
-      if (existingDictType && existingDictType.dictId !== dictId) {
+      if (existingDictType && existingDictType.id !== id) {
         throw new ApiException('字典类型已存在', ApiErrorCode.DICT_TYPE_EXISTS)
       }
     }
@@ -132,7 +141,7 @@ export class DictTypeService {
   async remove(id: number) {
     const dictType = await this.dictTypeRepository.findOne({
       where: {
-        dictId: id,
+        id: id,
       },
     })
 
@@ -143,7 +152,7 @@ export class DictTypeService {
     // 检查是否有字典数据
     const dictDataCount = await this.dictDataRepository.count({
       where: {
-        dictType: dictType.dictType,
+        dictType: dictType.type,
       },
     })
 
@@ -165,15 +174,15 @@ export class DictTypeService {
       where: {
         status: 0,
       },
-      select: ['dictId', 'dictName', 'dictType'],
+      select: ['id', 'name', 'type'],
       order: {
         createTime: 'DESC',
       },
     })
 
     return dictTypes.map(item => ({
-      label: item.dictName,
-      value: item.dictType,
+      label: item.name,
+      value: item.type,
     }))
   }
 }

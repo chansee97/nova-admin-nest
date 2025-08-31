@@ -1,4 +1,5 @@
 import type { Repository } from 'typeorm'
+import { Like } from 'typeorm'
 import type { CreateDictDataDto } from './dto/create-dict-data.dto'
 import type { UpdateDictDataDto } from './dto/update-dict-data.dto'
 import type { SearchQuery } from '@/common/dto/page.dto'
@@ -20,7 +21,7 @@ export class DictDataService {
     // 检查字典值是否已存在
     const existValue = await this.dictDataRepository.findOne({
       where: {
-        dictValue: createDictDataDto.dictValue,
+        value: createDictDataDto.value,
         dictType: createDictDataDto.dictType,
       },
     })
@@ -32,7 +33,7 @@ export class DictDataService {
     // 检查字典标签是否已存在
     const existLabel = await this.dictDataRepository.findOne({
       where: {
-        dictLabel: createDictDataDto.dictLabel,
+        name: createDictDataDto.name,
         dictType: createDictDataDto.dictType,
       },
     })
@@ -46,7 +47,14 @@ export class DictDataService {
   }
 
   // 分页查询字典数据
-  async findAll(searchQuery: SearchQuery & { dictType?: string }) {
+  async findAll(
+    searchQuery: SearchQuery & {
+      dictType?: string
+      name?: string
+      value?: string
+      status?: number
+    },
+  ) {
     // 设置默认分页参数，防止返回所有记录
     const pageNum = searchQuery.pageNum || 1
     const pageSize = searchQuery.pageSize || 10
@@ -60,12 +68,20 @@ export class DictDataService {
       whereCondition.dictType = searchQuery.dictType
     }
 
+    if (searchQuery.name) {
+      whereCondition.name = Like(`%${searchQuery.name}%`)
+    }
+
+    if (searchQuery.status !== undefined) {
+      whereCondition.status = searchQuery.status
+    }
+
     const [list, total] = await this.dictDataRepository.findAndCount({
       where: whereCondition,
       skip,
       take,
       order: {
-        dictSort: 'ASC',
+        sort: 'ASC',
         createTime: 'DESC',
       },
     })
@@ -80,7 +96,7 @@ export class DictDataService {
   async findOne(id: number) {
     const dictData = await this.dictDataRepository.findOne({
       where: {
-        dictCode: id,
+        id: id,
       },
     })
 
@@ -99,7 +115,7 @@ export class DictDataService {
         status: 0,
       },
       order: {
-        dictSort: 'ASC',
+        sort: 'ASC',
       },
     })
 
@@ -107,19 +123,19 @@ export class DictDataService {
   }
 
   // 更新字典数据
-  async update(dictCode: number, updateDictDataDto: UpdateDictDataDto) {
+  async update(id: number, updateDictDataDto: UpdateDictDataDto) {
     const updateData = updateDictDataDto
 
     // 检查是否存在
-    await this.findOne(dictCode)
+    await this.findOne(id)
 
     // 如果更新字典值，检查是否重复
-    if (updateData.dictValue) {
+    if (updateData.value) {
       const existValue = await this.dictDataRepository.findOne({
         where: {
-          dictValue: updateData.dictValue,
+          value: updateData.value,
           dictType: updateDictDataDto.dictType,
-          dictCode: { $ne: dictCode } as any,
+          id: { $ne: id } as any,
         },
       })
 
@@ -128,7 +144,7 @@ export class DictDataService {
       }
     }
 
-    await this.dictDataRepository.update(dictCode, updateData)
+    await this.dictDataRepository.update(id, updateData)
     return '字典数据修改成功'
   }
 
@@ -136,7 +152,7 @@ export class DictDataService {
   async remove(id: number) {
     const dictData = await this.dictDataRepository.findOne({
       where: {
-        dictCode: id,
+        id: id,
       },
     })
 

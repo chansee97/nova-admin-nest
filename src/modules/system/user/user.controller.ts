@@ -11,6 +11,7 @@ import {
   Post,
   Query,
   Put,
+  HttpCode,
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -29,6 +30,8 @@ export class UserController {
 
   @Public()
   @Post()
+  @HttpCode(200)
+  @Permissions('system:user:add')
   @ApiOperation({ summary: '创建用户' })
   @ApiBody({
     type: CreateUserDto,
@@ -63,7 +66,7 @@ export class UserController {
           phone: '13800138000',
           gender: 'male',
           deptId: 1,
-          userStatus: 1,
+          status: 1,
           remark: '系统管理员账号',
         },
       },

@@ -4,7 +4,7 @@ import type { UpdateUserDto } from './dto/update-user.dto'
 import type { SearchQuery } from '@/common/dto/page.dto'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { In } from 'typeorm'
+import { In, Like } from 'typeorm'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { encryptData } from '@/utils/crypto'
@@ -21,7 +21,7 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const { username, ...userData } = createUserDto
+    const { username } = createUserDto
     const existUser = await this.userRepository.findOne({
       where: { username },
     })
@@ -29,11 +29,8 @@ export class UserService {
     if (existUser) throw new ApiException('用户已存在', ApiErrorCode.USER_EXIST)
 
     try {
-      // 加密密码
-      userData.password = encryptData(userData.password)
-
       // 创建用户基本信息
-      const newUser = this.userRepository.create(userData)
+      const newUser = this.userRepository.create(createUserDto)
       await this.userRepository.save(newUser)
 
       return '注册成功'
@@ -42,7 +39,13 @@ export class UserService {
     }
   }
 
-  async findAll(searchQuery: SearchQuery) {
+  async findAll(
+    searchQuery: SearchQuery & {
+      username?: string
+      phone?: string
+      status?: number
+    },
+  ) {
     // 设置默认分页参数，防止返回所有记录
     const pageNum = searchQuery.pageNum || 1
     const pageSize = searchQuery.pageSize || 10
@@ -50,10 +53,23 @@ export class UserService {
     const skip = (pageNum - 1) * pageSize
     const take = pageSize
 
+    // 构建查询条件
+    const whereCondition: any = {}
+
+    if (searchQuery.username) {
+      whereCondition.username = Like(`%${searchQuery.username}%`)
+    }
+
+    if (searchQuery.phone) {
+      whereCondition.phone = Like(`%${searchQuery.phone}%`)
+    }
+
+    if (searchQuery.status !== undefined) {
+      whereCondition.status = searchQuery.status
+    }
+
     const [list, total] = await this.userRepository.findAndCount({
-      where: {
-        userStatus: 0,
-      },
+      where: whereCondition,
       skip,
       take,
       order: {
@@ -70,7 +86,7 @@ export class UserService {
   async findOne(id: number) {
     const user = await this.userRepository.findOne({
       where: {
-        userId: id,
+        id: id,
       },
       relations: {
         roles: true,
@@ -116,7 +132,7 @@ export class UserService {
         // 查找指定的角色
         const roles = await this.roleRepository.find({
           where: {
-            roleId: In(roleIds),
+            id: In(roleIds),
           },
         })
         user.roles = roles
@@ -135,7 +151,7 @@ export class UserService {
   async remove(id: number) {
     const user = await this.userRepository.findOne({
       where: {
-        userId: id,
+        id: id,
       },
     })
 

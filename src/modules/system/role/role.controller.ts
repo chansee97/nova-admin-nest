@@ -42,7 +42,6 @@ export class RoleController {
         value: {
           roleName: '管理员',
           roleKey: 'admin',
-          sort: 0,
         },
       },
       full: {
@@ -51,8 +50,7 @@ export class RoleController {
         value: {
           roleName: '经理',
           roleKey: 'manager',
-          sort: 0,
-          roleStatus: 1,
+          status: 1,
           remark: '经理角色',
         },
       },
@@ -77,13 +75,38 @@ export class RoleController {
     description: '每页数量',
     example: 10,
   })
+  @ApiQuery({
+    name: 'roleName',
+    required: false,
+    description: '角色名称',
+    example: '管理员',
+  })
+  @ApiQuery({
+    name: 'roleKey',
+    required: false,
+    description: '角色权限字符串',
+    example: 'admin',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    description: '角色状态（0正常 1停用）',
+    example: 0,
+  })
   @Permissions('system:role:query')
-  findAll(@Query() searchQuery: SearchQuery) {
+  findAll(
+    @Query()
+    searchQuery: SearchQuery & {
+      roleName?: string
+      roleKey?: string
+      status?: number
+    },
+  ) {
     return this.roleService.findAll(searchQuery)
   }
 
   @Get('options')
-  @ApiOperation({ summary: '查询所有可选角色' })
+  @ApiOperation({ summary: '角色下拉选项' })
   @Permissions('system:role:query')
   findOptions() {
     return this.roleService.findOptions()

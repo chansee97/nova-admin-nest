@@ -5,7 +5,6 @@ import {
   IsNumber,
   IsIn,
   Length,
-  IsBoolean,
 } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
@@ -13,7 +12,7 @@ export class CreateDictDataDto {
   @ApiProperty({ required: false, description: '字典排序', example: 1 })
   @IsOptional()
   @IsNumber()
-  dictSort?: number = 0
+  sort?: number = 0
 
   @ApiProperty({
     required: true,
@@ -27,7 +26,7 @@ export class CreateDictDataDto {
   @Length(1, 100, {
     message: '字典标签长度1-100',
   })
-  dictLabel: string
+  name: string
 
   @ApiProperty({
     required: true,
@@ -41,7 +40,7 @@ export class CreateDictDataDto {
   @Length(1, 100, {
     message: '字典键值长度1-100',
   })
-  dictValue: string
+  value: string
 
   @ApiProperty({
     required: true,
@@ -56,30 +55,6 @@ export class CreateDictDataDto {
     message: '字典类型长度1-100',
   })
   dictType: string
-
-  @ApiProperty({ required: false, description: '样式属性', example: 'primary' })
-  @IsOptional()
-  @IsString()
-  cssClass?: string
-
-  @ApiProperty({
-    required: false,
-    description: '表格回显样式',
-    example: 'default',
-  })
-  @IsOptional()
-  @IsString()
-  listClass?: string
-
-  @ApiProperty({
-    required: false,
-    description: '是否默认',
-    type: Boolean,
-    example: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  isDefault?: boolean = false
 
   @ApiProperty({
     required: false,

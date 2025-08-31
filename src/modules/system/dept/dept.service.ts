@@ -1,7 +1,7 @@
 import type { Repository } from 'typeorm'
+import { Not, Like } from 'typeorm'
 import type { CreateDeptDto } from './dto/create-dept.dto'
 import type { UpdateDeptDto } from './dto/update-dept.dto'
-import type { SearchQuery } from '@/common/dto/page.dto'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ApiErrorCode } from '@/common/enums'
@@ -33,7 +33,7 @@ export class DeptService {
     if (createDeptDto.parentId && createDeptDto.parentId > 0) {
       const parentDept = await this.deptRepository.findOne({
         where: {
-          deptId: createDeptDto.parentId,
+          id: createDeptDto.parentId,
         },
       })
 
@@ -43,8 +43,8 @@ export class DeptService {
 
       // 自动生成祖级列表
       createDeptDto.ancestors = parentDept.ancestors
-        ? `${parentDept.ancestors},${parentDept.deptId}`
-        : `${parentDept.deptId}`
+        ? `${parentDept.ancestors},${parentDept.id}`
+        : `${parentDept.id}`
     }
 
     const dept = this.deptRepository.create(createDeptDto)
@@ -52,33 +52,34 @@ export class DeptService {
   }
 
   // 分页查询部门
-  async findAll(searchQuery: SearchQuery) {
-    // 设置默认分页参数，防止返回所有记录
-    const pageNum = searchQuery.pageNum || 1
-    const pageSize = searchQuery.pageSize || 10
+  async findAll(searchQuery: { deptName?: string; status?: number }) {
+    // 构建查询条件
+    const where: any = {}
 
-    const skip = (pageNum - 1) * pageSize
-    const take = pageSize
+    if (searchQuery.deptName) {
+      // 使用 LIKE 进行模糊搜索，支持中文
+      where.deptName = Like(`%${searchQuery.deptName}%`)
+    }
 
-    const [list, total] = await this.deptRepository.findAndCount({
-      skip,
-      take,
+    if (searchQuery.status !== undefined) {
+      where.status = searchQuery.status
+    }
+
+    const list = await this.deptRepository.find({
+      where,
       order: {
         sort: 'ASC',
         createTime: 'DESC',
       },
     })
 
-    return {
-      list,
-      total,
-    }
+    return list
   }
 
   async findOptions() {
     const depts = await this.deptRepository.find({
       where: { status: 0 }, // 只查询正常状态的部门
-      select: ['deptId', 'deptName', 'parentId'], // 返回需要的字段
+      select: ['id', 'deptName', 'parentId'], // 返回需要的字段
       order: {
         sort: 'ASC',
         createTime: 'ASC',
@@ -87,36 +88,17 @@ export class DeptService {
 
     // 构建树形结构
     return buildSelectTree(depts, {
-      customID: 'deptId',
+      customID: 'id',
       labelKey: 'deptName',
-      valueKey: 'deptId',
+      valueKey: 'id',
     })
-  }
-
-  // 获取部门树形结构
-  async getDeptTree() {
-    const depts = await this.deptRepository.find({
-      where: { status: 0 },
-      order: { sort: 'ASC' },
-    })
-
-    // 构建树形结构
-    const buildTree = (parentId = 0): any[] => {
-      const children = depts.filter(dept => dept.parentId === parentId)
-      return children.map(dept => ({
-        ...dept,
-        children: buildTree(dept.deptId),
-      }))
-    }
-
-    return buildTree()
   }
 
   // 查询部门详情
   async findOne(id: number) {
     const dept = await this.deptRepository.findOne({
       where: {
-        deptId: id,
+        id: id,
       },
     })
 
@@ -128,18 +110,13 @@ export class DeptService {
   }
 
   // 更新部门
-  async update(deptId: number, updateDeptDto: UpdateDeptDto) {
-    const updateData = updateDeptDto
-
-    // 检查部门是否存在
-    await this.findOne(deptId)
-
+  async update(id: number, updateDeptDto: UpdateDeptDto) {
     // 如果更新部门名称，检查是否重复
-    if (updateData.deptName) {
+    if (updateDeptDto.deptName) {
       const existingDept = await this.deptRepository.findOne({
         where: {
-          deptName: updateData.deptName,
-          deptId: { $ne: deptId } as any,
+          deptName: updateDeptDto.deptName,
+          id: Not(id),
         },
       })
 
@@ -149,8 +126,8 @@ export class DeptService {
     }
 
     // 如果更新父部门，检查父部门是否存在且不能是自己
-    if (updateData.parentId && updateData.parentId > 0) {
-      if (updateData.parentId === deptId) {
+    if (updateDeptDto.parentId && updateDeptDto.parentId > 0) {
+      if (updateDeptDto.parentId === id) {
         throw new ApiException(
           '不能将自己设为父部门',
           ApiErrorCode.DEPT_NOT_EXIST,
@@ -159,7 +136,7 @@ export class DeptService {
 
       const parentDept = await this.deptRepository.findOne({
         where: {
-          deptId: updateData.parentId,
+          id: updateDeptDto.parentId,
         },
       })
 
@@ -168,7 +145,7 @@ export class DeptService {
       }
     }
 
-    await this.deptRepository.update(deptId, updateData)
+    await this.deptRepository.update(id, updateDeptDto)
     return '部门修改成功'
   }
 
@@ -176,7 +153,7 @@ export class DeptService {
   async remove(id: number) {
     const dept = await this.deptRepository.findOne({
       where: {
-        deptId: id,
+        id: id,
       },
       relations: ['users'],
     })

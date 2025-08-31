@@ -10,20 +10,20 @@ import {
 import { DateFormat } from '@/common/decorators'
 
 @Entity('sys_dict_type')
-@Index(['dictType'])
+@Index(['type'])
 @Index(['status'])
 export class DictType {
   @PrimaryGeneratedColumn({
     comment: '字典主键',
   })
-  dictId: number
+  id: number
 
   @Column({
     length: 100,
     default: '',
     comment: '字典名称',
   })
-  dictName: string
+  name: string
 
   @Column({
     length: 100,
@@ -31,7 +31,7 @@ export class DictType {
     unique: true,
     comment: '字典类型',
   })
-  dictType: string
+  type: string
 
   @Column({
     type: 'smallint',
@@ -40,25 +40,11 @@ export class DictType {
   })
   status: number
 
-  @Column({
-    length: 64,
-    default: '',
-    comment: '创建者',
-  })
-  createBy: string
-
   @CreateDateColumn({
     comment: '创建时间',
   })
   @DateFormat()
   createTime: Date
-
-  @Column({
-    length: 64,
-    default: '',
-    comment: '更新者',
-  })
-  updateBy: string
 
   @UpdateDateColumn({
     comment: '更新时间',

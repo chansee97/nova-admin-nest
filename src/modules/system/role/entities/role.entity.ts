@@ -15,7 +15,7 @@ import { DateFormat } from '@/common/decorators'
 @Entity('sys_role')
 export class Role {
   @PrimaryGeneratedColumn({ comment: '角色ID' })
-  roleId: number
+  id: number
 
   @Column({
     length: 64,
@@ -31,38 +31,17 @@ export class Role {
   roleKey: string
 
   @Column({
-    type: 'int',
-    default: 0,
-    comment: '显示顺序',
-  })
-  sort: number
-
-  @Column({
     type: 'smallint',
     default: 0,
     comment: '角色状态（0正常 1停用）',
   })
-  roleStatus: number
-
-  @Column({
-    length: 64,
-    default: '',
-    comment: '创建者',
-  })
-  createBy: string
+  status: number
 
   @CreateDateColumn({
     comment: '创建时间',
   })
   @DateFormat()
   createTime: Date
-
-  @Column({
-    length: 64,
-    default: '',
-    comment: '更新者',
-  })
-  updateBy: string
 
   @UpdateDateColumn({
     comment: '更新时间',
