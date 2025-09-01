@@ -41,6 +41,7 @@ export class UserService {
 
   async findAll(
     searchQuery: SearchQuery & {
+      deptId?: number
       username?: string
       phone?: string
       status?: number
@@ -55,6 +56,10 @@ export class UserService {
 
     // 构建查询条件
     const whereCondition: any = {}
+
+    if (searchQuery.deptId) {
+      whereCondition.deptId = searchQuery.deptId
+    }
 
     if (searchQuery.username) {
       whereCondition.username = Like(`%${searchQuery.username}%`)
