@@ -3,11 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
 import { User } from '@/modules/system/user/entities/user.entity'
+import { Role } from '@/modules/system/role/entities/role.entity'
 import { DateFormat } from '@/common/decorators'
 
 @Entity('sys_dept')
@@ -97,4 +99,8 @@ export class Dept {
   // 一个部门可以有多个用户
   @OneToMany(() => User, user => user.dept)
   users: User[]
+
+  // 部门关联的角色（多对多）- 用于数据权限控制
+  @ManyToMany(() => Role, role => role.depts)
+  roles: Role[]
 }

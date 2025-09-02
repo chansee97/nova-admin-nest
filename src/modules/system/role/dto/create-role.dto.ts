@@ -61,4 +61,15 @@ export class CreateRoleDto {
   @IsArray()
   @IsNumber({}, { each: true })
   menuIds?: number[]
+
+  @ApiProperty({
+    required: false,
+    description: '部门ID数组',
+    example: [1, 2, 3],
+    type: [Number],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  deptIds?: number[]
 }

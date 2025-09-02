@@ -10,6 +10,7 @@ import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { Menu } from '../menu/entities/menu.entity'
 import { Role } from './entities/role.entity'
+import { Dept } from '../dept/entities/dept.entity'
 
 @Injectable()
 export class RoleService {
@@ -18,10 +19,12 @@ export class RoleService {
     private roleRepository: Repository<Role>,
     @InjectRepository(Menu)
     private menuRepository: Repository<Menu>,
+    @InjectRepository(Dept)
+    private deptRepository: Repository<Dept>,
   ) {}
 
   async create(createRoleDto: CreateRoleDto) {
-    const { menuIds, ...roleData } = createRoleDto
+    const { menuIds, deptIds, ...roleData } = createRoleDto
 
     // 检查角色名称是否已存在
     const existRoleName = await this.roleRepository.findOne({
@@ -51,6 +54,17 @@ export class RoleService {
         },
       })
       role.menus = menus
+      await this.roleRepository.save(role)
+    }
+
+    // 如果提供了部门ID，则设置部门关联
+    if (deptIds && deptIds.length > 0) {
+      const depts = await this.deptRepository.find({
+        where: {
+          id: In(deptIds),
+        },
+      })
+      role.depts = depts
       await this.roleRepository.save(role)
     }
 
@@ -119,7 +133,7 @@ export class RoleService {
   async findOne(id: number) {
     const existData = await this.roleRepository.findOne({
       where: { id: id },
-      relations: ['menus'],
+      relations: ['menus', 'depts'],
     })
 
     if (!existData)
@@ -129,7 +143,7 @@ export class RoleService {
   }
 
   async update(id: number, updateRoleDto: UpdateRoleDto) {
-    const { menuIds, ...roleData } = updateRoleDto
+    const { menuIds, deptIds, ...roleData } = updateRoleDto
 
     // 检查是否存在
     const role = await this.findOne(id)
@@ -151,6 +165,22 @@ export class RoleService {
       } else {
         // 如果menuIds为空数组，则清空菜单权限
         role.menus = []
+      }
+      await this.roleRepository.save(role)
+    }
+
+    // 如果提供了部门ID，则更新部门关联
+    if (deptIds !== undefined) {
+      if (deptIds.length > 0) {
+        const depts = await this.deptRepository.find({
+          where: {
+            id: In(deptIds),
+          },
+        })
+        role.depts = depts
+      } else {
+        // 如果deptIds为空数组，则清空部门关联
+        role.depts = []
       }
       await this.roleRepository.save(role)
     }
