@@ -29,7 +29,7 @@ export class DictTypeService {
     })
 
     if (existingDictType) {
-      throw new ApiException('字典类型已存在', ApiErrorCode.DICT_TYPE_EXISTS)
+      throw new ApiException('字典类型已存在', ApiErrorCode.SERVER_ERROR)
     }
 
     const dictType = this.dictTypeRepository.create(createDictTypeDto)
@@ -77,7 +77,7 @@ export class DictTypeService {
     })
 
     if (!dictType) {
-      throw new ApiException('字典类型不存在', ApiErrorCode.DICT_TYPE_NOT_EXIST)
+      throw new ApiException('字典类型不存在', ApiErrorCode.SERVER_ERROR)
     }
 
     return dictType
@@ -94,7 +94,7 @@ export class DictTypeService {
     })
 
     if (!result) {
-      throw new ApiException('字典类型不存在', ApiErrorCode.DICT_TYPE_NOT_EXIST)
+      throw new ApiException('字典类型不存在', ApiErrorCode.SERVER_ERROR)
     }
 
     // 过滤启用的字典数据并排序
@@ -116,7 +116,7 @@ export class DictTypeService {
     })
 
     if (!dictType) {
-      throw new ApiException('字典类型不存在', ApiErrorCode.DICT_TYPE_NOT_EXIST)
+      throw new ApiException('字典类型不存在', ApiErrorCode.SERVER_ERROR)
     }
 
     // 检查字典类型是否重复（排除自己）
@@ -128,7 +128,7 @@ export class DictTypeService {
       })
 
       if (existingDictType && existingDictType.id !== id) {
-        throw new ApiException('字典类型已存在', ApiErrorCode.DICT_TYPE_EXISTS)
+        throw new ApiException('字典类型已存在', ApiErrorCode.SERVER_ERROR)
       }
     }
 
@@ -146,7 +146,7 @@ export class DictTypeService {
     })
 
     if (!dictType) {
-      throw new ApiException('字典类型不存在', ApiErrorCode.DICT_TYPE_NOT_EXIST)
+      throw new ApiException('字典类型不存在', ApiErrorCode.SERVER_ERROR)
     }
 
     // 检查是否有字典数据
@@ -159,7 +159,7 @@ export class DictTypeService {
     if (dictDataCount > 0) {
       throw new ApiException(
         '存在字典数据，无法删除',
-        ApiErrorCode.DICT_TYPE_HAS_DATA,
+        ApiErrorCode.SERVER_ERROR,
       )
     }
 

@@ -10,7 +10,7 @@ import {
   HttpCode,
   Param,
   Post,
-  Put,
+  Patch,
   Query,
 } from '@nestjs/common'
 import {
@@ -62,7 +62,7 @@ export class MenuController {
     return this.menuService.findOne(+id)
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiOperation({ summary: '更新菜单信息' })
   @ApiParam({ name: 'id', description: '菜单ID', example: 1 })
   @ApiBody({

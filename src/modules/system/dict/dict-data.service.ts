@@ -27,7 +27,7 @@ export class DictDataService {
     })
 
     if (existValue) {
-      throw new ApiException('字典值已存在', ApiErrorCode.DICT_DATA_NOT_EXIST)
+      throw new ApiException('字典值已存在', ApiErrorCode.SERVER_ERROR)
     }
 
     // 检查字典标签是否已存在
@@ -39,7 +39,7 @@ export class DictDataService {
     })
 
     if (existLabel) {
-      throw new ApiException('字典标签已存在', ApiErrorCode.DICT_DATA_NOT_EXIST)
+      throw new ApiException('字典标签已存在', ApiErrorCode.SERVER_ERROR)
     }
 
     const dictData = this.dictDataRepository.create(createDictDataDto)
@@ -101,7 +101,7 @@ export class DictDataService {
     })
 
     if (!dictData) {
-      throw new ApiException('字典数据不存在', ApiErrorCode.DICT_DATA_NOT_EXIST)
+      throw new ApiException('字典数据不存在', ApiErrorCode.SERVER_ERROR)
     }
 
     return dictData
@@ -140,7 +140,7 @@ export class DictDataService {
       })
 
       if (existValue) {
-        throw new ApiException('字典值已存在', ApiErrorCode.DICT_DATA_NOT_EXIST)
+        throw new ApiException('字典值已存在', ApiErrorCode.SERVER_ERROR)
       }
     }
 
@@ -157,7 +157,7 @@ export class DictDataService {
     })
 
     if (!dictData) {
-      throw new ApiException('字典数据不存在', ApiErrorCode.DICT_DATA_NOT_EXIST)
+      throw new ApiException('字典数据不存在', ApiErrorCode.SERVER_ERROR)
     }
 
     // 硬删除

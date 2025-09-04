@@ -73,22 +73,19 @@ export class CaptchaService {
     }
 
     if (!captchaId || !userInput) {
-      throw new ApiException('验证码不能为空', ApiErrorCode.CAPTCHA_EMPTY)
+      throw new ApiException('验证码不能为空', ApiErrorCode.SERVER_ERROR)
     }
 
     const stored = this.captchaStore.get(captchaId)
 
     if (!stored) {
-      throw new ApiException(
-        '验证码不存在或已过期',
-        ApiErrorCode.CAPTCHA_EXPIRED,
-      )
+      throw new ApiException('验证码不存在或已过期', ApiErrorCode.SERVER_ERROR)
     }
 
     // 检查是否过期
     if (Date.now() > stored.expires) {
       this.captchaStore.delete(captchaId)
-      throw new ApiException('验证码已过期', ApiErrorCode.CAPTCHA_EXPIRED)
+      throw new ApiException('验证码已过期', ApiErrorCode.SERVER_ERROR)
     }
 
     // 使用工具函数验证验证码
@@ -102,7 +99,7 @@ export class CaptchaService {
     this.captchaStore.delete(captchaId)
 
     if (!isValid) {
-      throw new ApiException('验证码错误', ApiErrorCode.CAPTCHA_INVALID)
+      throw new ApiException('验证码错误', ApiErrorCode.SERVER_ERROR)
     }
 
     return true

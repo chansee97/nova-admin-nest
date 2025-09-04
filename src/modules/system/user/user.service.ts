@@ -27,7 +27,8 @@ export class UserService {
       where: { username },
     })
 
-    if (existUser) throw new ApiException('用户已存在', ApiErrorCode.USER_EXIST)
+    if (existUser)
+      throw new ApiException('用户已存在', ApiErrorCode.SERVER_ERROR)
 
     try {
       // 创建用户基本信息
@@ -101,7 +102,7 @@ export class UserService {
     })
 
     if (!user) {
-      throw new ApiException('未找到该用户信息', ApiErrorCode.USER_NOTEXIST)
+      throw new ApiException('未找到该用户信息', ApiErrorCode.SERVER_ERROR)
     }
 
     return user
@@ -114,7 +115,7 @@ export class UserService {
       },
     })
     if (!user)
-      throw new ApiException('未找到该用户信息', ApiErrorCode.USER_NOTEXIST)
+      throw new ApiException('未找到该用户信息', ApiErrorCode.SERVER_ERROR)
 
     return user
   }
@@ -164,7 +165,7 @@ export class UserService {
     })
 
     if (!user) {
-      throw new ApiException('用户不存在', ApiErrorCode.USER_NOTEXIST)
+      throw new ApiException('用户不存在', ApiErrorCode.SERVER_ERROR)
     }
 
     // 验证旧密码
@@ -198,7 +199,7 @@ export class UserService {
     })
 
     if (!user) {
-      throw new ApiException('用户不存在', ApiErrorCode.USER_NOTEXIST)
+      throw new ApiException('用户不存在', ApiErrorCode.SERVER_ERROR)
     }
 
     await this.userRepository.softRemove(user)

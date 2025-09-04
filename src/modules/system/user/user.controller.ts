@@ -13,7 +13,6 @@ import {
   Param,
   Post,
   Query,
-  Put,
   Patch,
   HttpCode,
   Req,
@@ -103,7 +102,7 @@ export class UserController {
     return this.userService.findOne(+id)
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiOperation({ summary: '更新用户信息' })
   @ApiParam({ name: 'id', description: '用户ID', example: 1 })
   @ApiBody({
@@ -168,7 +167,7 @@ export class UserController {
     // 从请求头中提取 token
     const token = this.extractTokenFromHeader(request)
     if (!token) {
-      throw new ApiException('未找到访问令牌', ApiErrorCode.TOKEN_MISS)
+      throw new ApiException('未找到访问令牌', ApiErrorCode.SERVER_ERROR)
     }
 
     // 使用 JwtService 验证并获取用户信息
@@ -179,12 +178,12 @@ export class UserController {
       })
 
       if (!payload || !payload.userId) {
-        throw new ApiException('无效的访问令牌', ApiErrorCode.TOKEN_INVALID)
+        throw new ApiException('无效的访问令牌', ApiErrorCode.SERVER_ERROR)
       }
 
       return this.userService.updatePassword(payload.userId, updatePasswordDto)
     } catch {
-      throw new ApiException('访问令牌验证失败', ApiErrorCode.TOKEN_INVALID)
+      throw new ApiException('访问令牌验证失败', ApiErrorCode.SERVER_ERROR)
     }
   }
 

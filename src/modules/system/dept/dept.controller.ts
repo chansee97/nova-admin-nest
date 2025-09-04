@@ -10,7 +10,7 @@ import {
   Post,
   Query,
   HttpCode,
-  Put,
+  Patch,
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -61,7 +61,7 @@ export class DeptController {
     return this.deptService.findOne(+id)
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiOperation({ summary: '更新部门信息' })
   @ApiParam({ name: 'id', description: '部门ID', example: 1 })
   @Permissions('system:dept:edit')

@@ -26,7 +26,7 @@ export class DeptService {
     })
 
     if (existingDept) {
-      throw new ApiException('部门名称已存在', ApiErrorCode.DEPT_NAME_EXISTS)
+      throw new ApiException('部门名称已存在', ApiErrorCode.SERVER_ERROR)
     }
 
     // 如果有父部门，检查父部门是否存在
@@ -38,7 +38,7 @@ export class DeptService {
       })
 
       if (!parentDept) {
-        throw new ApiException('父部门不存在', ApiErrorCode.DEPT_NOT_EXIST)
+        throw new ApiException('父部门不存在', ApiErrorCode.SERVER_ERROR)
       }
 
       // 自动生成祖级列表
@@ -103,7 +103,7 @@ export class DeptService {
     })
 
     if (!dept) {
-      throw new ApiException('部门不存在', ApiErrorCode.DEPT_NOT_EXIST)
+      throw new ApiException('部门不存在', ApiErrorCode.SERVER_ERROR)
     }
 
     return dept
@@ -121,7 +121,7 @@ export class DeptService {
       })
 
       if (existingDept) {
-        throw new ApiException('部门名称已存在', ApiErrorCode.DEPT_NAME_EXISTS)
+        throw new ApiException('部门名称已存在', ApiErrorCode.SERVER_ERROR)
       }
     }
 
@@ -130,7 +130,7 @@ export class DeptService {
       if (updateDeptDto.parentId === id) {
         throw new ApiException(
           '不能将自己设为父部门',
-          ApiErrorCode.DEPT_NOT_EXIST,
+          ApiErrorCode.SERVER_ERROR,
         )
       }
 
@@ -141,7 +141,7 @@ export class DeptService {
       })
 
       if (!parentDept) {
-        throw new ApiException('父部门不存在', ApiErrorCode.DEPT_NOT_EXIST)
+        throw new ApiException('父部门不存在', ApiErrorCode.SERVER_ERROR)
       }
     }
 
@@ -159,7 +159,7 @@ export class DeptService {
     })
 
     if (!dept) {
-      throw new ApiException('部门不存在', ApiErrorCode.DEPT_NOT_EXIST)
+      throw new ApiException('部门不存在', ApiErrorCode.SERVER_ERROR)
     }
 
     // 检查是否有子部门
@@ -170,17 +170,14 @@ export class DeptService {
     })
 
     if (childDepts.length > 0) {
-      throw new ApiException(
-        '存在子部门，无法删除',
-        ApiErrorCode.DEPT_HAS_CHILDREN,
-      )
+      throw new ApiException('存在子部门，无法删除', ApiErrorCode.SERVER_ERROR)
     }
 
     // 检查是否有用户
     if (dept.users && dept.users.length > 0) {
       throw new ApiException(
         '部门下存在用户，无法删除',
-        ApiErrorCode.DEPT_HAS_USERS,
+        ApiErrorCode.SERVER_ERROR,
       )
     }
 

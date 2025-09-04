@@ -11,7 +11,7 @@ import {
   Post,
   Query,
   HttpCode,
-  Put,
+  Patch,
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -120,7 +120,7 @@ export class RoleController {
     return this.roleService.findOne(id)
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiOperation({ summary: '更新角色信息' })
   @ApiParam({ name: 'id', description: '角色ID', example: 1 })
   @Permissions('system:role:edit')

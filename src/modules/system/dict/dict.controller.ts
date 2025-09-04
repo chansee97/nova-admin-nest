@@ -6,7 +6,7 @@ import {
   HttpCode,
   Param,
   Post,
-  Put,
+  Patch,
   Query,
 } from '@nestjs/common'
 import {
@@ -86,7 +86,7 @@ export class DictController {
     return this.dictTypeService.findOne(+id)
   }
 
-  @Put('types/:id')
+  @Patch('types/:id')
   @HttpCode(200)
   @ApiOperation({ summary: '字典类型-更新' })
   @ApiParam({ name: 'id', description: '字典类型ID' })
@@ -172,7 +172,7 @@ export class DictController {
     return this.dictDataService.findOne(+id)
   }
 
-  @Put('data/:id')
+  @Patch('data/:id')
   @HttpCode(200)
   @ApiOperation({ summary: '字典数据-更新' })
   @ApiParam({ name: 'id', description: '字典数据ID' })

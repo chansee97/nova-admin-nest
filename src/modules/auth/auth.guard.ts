@@ -28,7 +28,7 @@ export class JwtAuthGuard implements CanActivate {
     if (!token) {
       throw new ApiException(
         '未登录',
-        ApiErrorCode.TOKEN_MISS,
+        ApiErrorCode.SERVER_ERROR,
         HttpStatus.UNAUTHORIZED,
       )
     }
@@ -38,7 +38,7 @@ export class JwtAuthGuard implements CanActivate {
     } catch {
       throw new ApiException(
         'token验证失败',
-        ApiErrorCode.TOKEN_INVALID,
+        ApiErrorCode.SERVER_ERROR,
         HttpStatus.UNAUTHORIZED,
       )
     }

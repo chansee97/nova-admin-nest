@@ -86,10 +86,7 @@ export class AuthService {
 
       // 检查是否启用刷新token功能
       if (!jwtConfig.enableRefreshToken) {
-        throw new ApiException(
-          '刷新token功能未启用',
-          ApiErrorCode.TOKEN_INVALID,
-        )
+        throw new ApiException('刷新token功能未启用', ApiErrorCode.SERVER_ERROR)
       }
 
       const payload = this.jwtService.verify(refreshToken, {
@@ -102,9 +99,9 @@ export class AuthService {
           return this.generateToken(user)
         }
       }
-      throw new ApiException('刷新令牌无效', ApiErrorCode.TOKEN_INVALID)
+      throw new ApiException('刷新令牌无效', ApiErrorCode.SERVER_ERROR)
     } catch {
-      throw new ApiException('刷新令牌已过期', ApiErrorCode.TOKEN_INVALID)
+      throw new ApiException('刷新令牌已过期', ApiErrorCode.SERVER_ERROR)
     }
   }
 
@@ -124,7 +121,7 @@ export class AuthService {
 
       return '退出登录成功'
     } catch {
-      throw new ApiException('token无效', ApiErrorCode.TOKEN_INVALID)
+      throw new ApiException('token无效', ApiErrorCode.SERVER_ERROR)
     }
   }
 
@@ -139,14 +136,14 @@ export class AuthService {
       const payload = this.verifyToken(token)
 
       if (!payload || !payload.userId) {
-        throw new ApiException('token无效', ApiErrorCode.TOKEN_INVALID)
+        throw new ApiException('token无效', ApiErrorCode.SERVER_ERROR)
       }
 
       // 根据userId获取用户完整信息，包括角色和部门
       const user = await this.userService.findOne(payload.userId)
 
       if (!user) {
-        throw new ApiException('用户不存在', ApiErrorCode.USER_NOTEXIST)
+        throw new ApiException('用户不存在', ApiErrorCode.SERVER_ERROR)
       }
 
       return user
@@ -154,7 +151,7 @@ export class AuthService {
       if (error instanceof ApiException) {
         throw error
       }
-      throw new ApiException('获取用户信息失败', ApiErrorCode.TOKEN_INVALID)
+      throw new ApiException('token验证失败', ApiErrorCode.SERVER_ERROR)
     }
   }
 }
