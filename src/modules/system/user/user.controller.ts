@@ -1,7 +1,10 @@
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
+import { UpdatePasswordDto } from './dto/update-password.dto'
 import type { SearchQuery } from '@/common/dto'
 import { UserService } from './user.service'
+import { JwtService } from '@nestjs/jwt'
+import { ConfigService } from '@nestjs/config'
 import {
   Body,
   Controller,
@@ -11,8 +14,11 @@ import {
   Post,
   Query,
   Put,
+  Patch,
   HttpCode,
+  Req,
 } from '@nestjs/common'
+import type { Request } from 'express'
 import {
   ApiTags,
   ApiOperation,
@@ -21,12 +27,18 @@ import {
   ApiBody,
 } from '@nestjs/swagger'
 import { Permissions, Public } from '@/common/decorators'
+import { ApiException } from '@/common/filters'
+import { ApiErrorCode } from '@/common/enums'
 
 @ApiTags('用户管理')
 @ApiBearerAuth('JWT-auth')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Public()
   @Post()
@@ -130,5 +142,54 @@ export class UserController {
   @Permissions('system:user:remove')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id)
+  }
+
+  @Patch('password')
+  @HttpCode(200)
+  @ApiOperation({ summary: '用户更新密码' })
+  @ApiBody({
+    type: UpdatePasswordDto,
+    description: '密码更新信息',
+    examples: {
+      basic: {
+        summary: '更新密码',
+        description: '用户更新自己的密码',
+        value: {
+          oldPassword: '123456',
+          newPassword: 'newPassword123',
+        },
+      },
+    },
+  })
+  async updatePassword(
+    @Req() request: Request,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    // 从请求头中提取 token
+    const token = this.extractTokenFromHeader(request)
+    if (!token) {
+      throw new ApiException('未找到访问令牌', ApiErrorCode.TOKEN_MISS)
+    }
+
+    // 使用 JwtService 验证并获取用户信息
+    try {
+      const jwtConfig = this.configService.get('app.jwt')
+      const payload = this.jwtService.verify(token, {
+        secret: jwtConfig.secret,
+      })
+
+      if (!payload || !payload.userId) {
+        throw new ApiException('无效的访问令牌', ApiErrorCode.TOKEN_INVALID)
+      }
+
+      return this.userService.updatePassword(payload.userId, updatePasswordDto)
+    } catch {
+      throw new ApiException('访问令牌验证失败', ApiErrorCode.TOKEN_INVALID)
+    }
+  }
+
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? []
+    return type === 'Bearer' ? token : undefined
   }
 }

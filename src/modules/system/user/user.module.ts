@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Role } from '../role/entities/role.entity'
@@ -11,8 +11,10 @@ import { UserService } from './user.service'
   controllers: [UserController],
   providers: [UserService],
   imports: [
+    ConfigModule,
     TypeOrmModule.forFeature([User, Role]),
     JwtModule.registerAsync({
+      imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('app.jwt.secret'),
       }),
