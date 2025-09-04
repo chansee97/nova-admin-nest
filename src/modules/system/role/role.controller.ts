@@ -21,7 +21,7 @@ import {
   ApiQuery,
   ApiBody,
 } from '@nestjs/swagger'
-import { Permissions } from '@/common/decorators'
+import { RequirePermissions } from '@/common/decorators'
 
 @ApiTags('角色管理')
 @ApiBearerAuth('JWT-auth')
@@ -56,7 +56,7 @@ export class RoleController {
       },
     },
   })
-  @Permissions('system:role:add')
+  @RequirePermissions('system:role:add')
   create(@Body() createRoleDto: CreateRoleDto) {
     return this.roleService.create(createRoleDto)
   }
@@ -93,7 +93,7 @@ export class RoleController {
     description: '角色状态（0正常 1停用）',
     example: 0,
   })
-  @Permissions('system:role:query')
+  @RequirePermissions('system:role:list')
   findAll(
     @Query()
     searchQuery: SearchQuery & {
@@ -107,7 +107,6 @@ export class RoleController {
 
   @Get('options')
   @ApiOperation({ summary: '角色下拉选项' })
-  @Permissions('system:role:query')
   findOptions() {
     return this.roleService.findOptions()
   }
@@ -115,7 +114,7 @@ export class RoleController {
   @Get(':id')
   @ApiOperation({ summary: '查询角色详情' })
   @ApiParam({ name: 'id', description: '角色ID', example: 1 })
-  @Permissions('system:role:query')
+  @RequirePermissions('system:role:query')
   findOne(@Param('id') id: number) {
     return this.roleService.findOne(id)
   }
@@ -123,7 +122,7 @@ export class RoleController {
   @Patch(':id')
   @ApiOperation({ summary: '更新角色信息' })
   @ApiParam({ name: 'id', description: '角色ID', example: 1 })
-  @Permissions('system:role:edit')
+  @RequirePermissions('system:role:edit')
   update(@Param('id') id: number, @Body() updateRoleDto: UpdateRoleDto) {
     return this.roleService.update(id, updateRoleDto)
   }
@@ -131,7 +130,7 @@ export class RoleController {
   @Delete(':id')
   @ApiOperation({ summary: '删除角色' })
   @ApiParam({ name: 'id', description: '角色ID', example: 1 })
-  @Permissions('system:role:remove')
+  @RequirePermissions('system:role:remove')
   remove(@Param('id') id: number) {
     return this.roleService.remove(id)
   }

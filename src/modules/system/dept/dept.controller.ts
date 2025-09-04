@@ -19,7 +19,7 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger'
-import { Permissions } from '@/common/decorators'
+import { RequirePermissions } from '@/common/decorators'
 
 @ApiTags('部门管理')
 @ApiBearerAuth('JWT-auth')
@@ -32,7 +32,7 @@ export class DeptController {
     type: CreateDeptDto,
     required: true,
   })
-  @Permissions('system:dept:add')
+  @RequirePermissions('system:dept:add')
   @Post()
   @HttpCode(200)
   create(@Body() createDeptDto: CreateDeptDto) {
@@ -40,7 +40,7 @@ export class DeptController {
   }
 
   @ApiOperation({ summary: '分页查询部门' })
-  @Permissions('system:dept:query')
+  @RequirePermissions('system:dept:list')
   @Get()
   findAll(@Query() query: { deptName?: string; status?: number }) {
     return this.deptService.findAll(query)
@@ -48,14 +48,13 @@ export class DeptController {
 
   @Get('options')
   @ApiOperation({ summary: '部门下拉选项' })
-  @Permissions('system:dept:query')
   findOptions() {
     return this.deptService.findOptions()
   }
 
   @ApiOperation({ summary: '查询部门详情' })
   @ApiParam({ name: 'id', description: '部门ID', example: 1 })
-  @Permissions('system:dept:query')
+  @RequirePermissions('system:dept:query')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.deptService.findOne(+id)
@@ -64,7 +63,7 @@ export class DeptController {
   @Patch(':id')
   @ApiOperation({ summary: '更新部门信息' })
   @ApiParam({ name: 'id', description: '部门ID', example: 1 })
-  @Permissions('system:dept:edit')
+  @RequirePermissions('system:dept:edit')
   update(@Param('id') id: string, @Body() updateDeptDto: UpdateDeptDto) {
     return this.deptService.update(+id, updateDeptDto)
   }
@@ -72,7 +71,7 @@ export class DeptController {
   @Delete(':id')
   @ApiOperation({ summary: '删除部门' })
   @ApiParam({ name: 'id', description: '部门ID', example: 1 })
-  @Permissions('system:dept:remove')
+  @RequirePermissions('system:dept:remove')
   remove(@Param('id') id: string) {
     return this.deptService.remove(+id)
   }

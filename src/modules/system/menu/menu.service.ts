@@ -1,5 +1,5 @@
 import type { Repository } from 'typeorm'
-import { In, Like } from 'typeorm'
+import { Like } from 'typeorm'
 import type { CreateMenuDto } from './dto/create-menu.dto'
 import type { UpdateMenuDto } from './dto/update-menu.dto'
 import { Injectable } from '@nestjs/common'
@@ -71,7 +71,6 @@ export class MenuService {
     const menus = await this.menuRepository.find({
       where: {
         status: 0,
-        menuType: In(['directory', 'page']), // 排除permission类型，只返回目录和页面
       },
       select: ['id', 'title', 'parentId'], // 返回需要的字段
       order: { sort: 'ASC' },

@@ -145,47 +145,58 @@ export class RoleService {
   async update(id: number, updateRoleDto: UpdateRoleDto) {
     const { menuIds, deptIds, ...roleData } = updateRoleDto
 
-    // 检查是否存在
-    const role = await this.findOne(id)
+    // 使用事务确保数据一致性
+    return await this.roleRepository.manager.transaction(async manager => {
+      // 获取完整的角色实体（包含关联数据）
+      const role = await manager.findOne(Role, {
+        where: { id },
+        relations: ['menus', 'depts'],
+      })
 
-    // 更新角色基本信息
-    if (Object.keys(roleData).length > 0) {
-      await this.roleRepository.update(id, roleData)
-    }
-
-    // 如果提供了菜单ID，则更新菜单权限
-    if (menuIds !== undefined) {
-      if (menuIds.length > 0) {
-        const menus = await this.menuRepository.find({
-          where: {
-            id: In(menuIds),
-          },
-        })
-        role.menus = menus
-      } else {
-        // 如果menuIds为空数组，则清空菜单权限
-        role.menus = []
+      if (!role) {
+        throw new ApiException('角色不存在', ApiErrorCode.SERVER_ERROR)
       }
-      await this.roleRepository.save(role)
-    }
 
-    // 如果提供了部门ID，则更新部门关联
-    if (deptIds !== undefined) {
-      if (deptIds.length > 0) {
-        const depts = await this.deptRepository.find({
-          where: {
-            id: In(deptIds),
-          },
-        })
-        role.depts = depts
-      } else {
-        // 如果deptIds为空数组，则清空部门关联
-        role.depts = []
+      // 更新角色基本信息
+      if (Object.keys(roleData).length > 0) {
+        Object.assign(role, roleData)
       }
-      await this.roleRepository.save(role)
-    }
 
-    return '角色修改成功'
+      // 如果提供了菜单ID，则更新菜单权限
+      if (menuIds !== undefined) {
+        if (menuIds.length > 0) {
+          const menus = await manager.find(Menu, {
+            where: {
+              id: In(menuIds),
+            },
+          })
+          role.menus = menus
+        } else {
+          // 如果menuIds为空数组，则清空菜单权限
+          role.menus = []
+        }
+      }
+
+      // 如果提供了部门ID，则更新部门关联
+      if (deptIds !== undefined) {
+        if (deptIds.length > 0) {
+          const depts = await manager.find(Dept, {
+            where: {
+              id: In(deptIds),
+            },
+          })
+          role.depts = depts
+        } else {
+          // 如果deptIds为空数组，则清空部门关联
+          role.depts = []
+        }
+      }
+
+      // 保存所有更改
+      await manager.save(Role, role)
+
+      return
+    })
   }
 
   async remove(id: number) {

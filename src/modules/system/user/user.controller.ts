@@ -25,7 +25,7 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger'
-import { Permissions, Public } from '@/common/decorators'
+import { RequirePermissions, Public } from '@/common/decorators'
 import { ApiException } from '@/common/filters'
 import { ApiErrorCode } from '@/common/enums'
 
@@ -40,9 +40,6 @@ export class UserController {
   ) {}
 
   @Public()
-  @Post()
-  @HttpCode(200)
-  @Permissions('system:user:add')
   @ApiOperation({ summary: '创建用户' })
   @ApiBody({
     type: CreateUserDto,
@@ -83,13 +80,16 @@ export class UserController {
       },
     },
   })
+  @Post()
+  @HttpCode(200)
+  @RequirePermissions('system:user:add')
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto)
   }
 
   @Get()
   @ApiOperation({ summary: '分页查询用户' })
-  @Permissions('system:user:query')
+  @RequirePermissions('system:user:list')
   findAll(@Query() searchQuery: SearchQuery) {
     return this.userService.findAll(searchQuery)
   }
@@ -97,7 +97,7 @@ export class UserController {
   @Get(':id')
   @ApiOperation({ summary: '查询用户详情' })
   @ApiParam({ name: 'id', description: '用户ID', example: 1 })
-  @Permissions('system:user:query')
+  @RequirePermissions('system:user:query')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id)
   }
@@ -130,7 +130,7 @@ export class UserController {
       },
     },
   })
-  @Permissions('system:user:edit')
+  @RequirePermissions('system:user:edit')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(+id, updateUserDto)
   }
@@ -138,7 +138,7 @@ export class UserController {
   @Delete(':id')
   @ApiOperation({ summary: '删除用户' })
   @ApiParam({ name: 'id', description: '用户ID', example: 1 })
-  @Permissions('system:user:remove')
+  @RequirePermissions('system:user:remove')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id)
   }

@@ -4,7 +4,7 @@ import { APP_GUARD, Reflector } from '@nestjs/core'
 import { JwtModule } from '@nestjs/jwt'
 import { UserModule } from '@/modules/system/user/user.module'
 import { AuthController } from './auth.controller'
-import { JwtAuthGuard } from './auth.guard'
+import { JwtGuard, AuthGuard } from '../../common/guards'
 import { AuthService } from './auth.service'
 import { CaptchaService } from './captcha.service'
 
@@ -16,7 +16,11 @@ import { CaptchaService } from './captcha.service'
     Reflector,
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard,
+      useClass: JwtGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
     },
   ],
   imports: [

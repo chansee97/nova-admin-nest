@@ -16,6 +16,7 @@ import {
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger'
+import { RequirePermissions } from '@/common/decorators'
 import { DictTypeService } from './dict-type.service'
 import { DictDataService } from './dict-data.service'
 import { CreateDictTypeDto } from './dto/create-dict-type.dto'
@@ -37,12 +38,14 @@ export class DictController {
   @Post('types')
   @HttpCode(200)
   @ApiOperation({ summary: '字典类型-创建' })
+  @RequirePermissions('system:dict:add')
   createDictType(@Body() createDictTypeDto: CreateDictTypeDto) {
     return this.dictTypeService.create(createDictTypeDto)
   }
 
   @Get('types')
   @ApiOperation({ summary: '字典类型-列表' })
+  @RequirePermissions('system:dict:list')
   @ApiQuery({
     name: 'pageNum',
     required: false,
@@ -82,6 +85,7 @@ export class DictController {
   @Get('types/:id')
   @ApiOperation({ summary: '字典类型-详情' })
   @ApiParam({ name: 'id', description: '字典类型ID' })
+  @RequirePermissions('system:dict:query')
   findDictTypeById(@Param('id') id: string) {
     return this.dictTypeService.findOne(+id)
   }
@@ -90,6 +94,7 @@ export class DictController {
   @HttpCode(200)
   @ApiOperation({ summary: '字典类型-更新' })
   @ApiParam({ name: 'id', description: '字典类型ID' })
+  @RequirePermissions('system:dict:edit')
   updateDictType(
     @Param('id') id: string,
     @Body() updateDictTypeDto: UpdateDictTypeDto,
@@ -100,6 +105,7 @@ export class DictController {
   @Delete('types/:id')
   @ApiOperation({ summary: '字典类型-删除' })
   @ApiParam({ name: 'id', description: '字典类型ID' })
+  @RequirePermissions('system:dict:remove')
   removeDictType(@Param('id') id: string) {
     return this.dictTypeService.remove(+id)
   }
@@ -109,12 +115,14 @@ export class DictController {
   @Post('data')
   @HttpCode(200)
   @ApiOperation({ summary: '字典数据-创建' })
+  @RequirePermissions('system:dict:add')
   createDictData(@Body() createDictDataDto: CreateDictDataDto) {
     return this.dictDataService.create(createDictDataDto)
   }
 
   @Get('data')
   @ApiOperation({ summary: '字典数据-列表' })
+  @RequirePermissions('system:dict:list')
   @ApiQuery({
     name: 'pageNum',
     required: false,
@@ -168,6 +176,7 @@ export class DictController {
   @Get('data/:id')
   @ApiOperation({ summary: '字典数据-详情' })
   @ApiParam({ name: 'id', description: '字典数据ID' })
+  @RequirePermissions('system:dict:query')
   findDictDataById(@Param('id') id: string) {
     return this.dictDataService.findOne(+id)
   }
@@ -176,6 +185,7 @@ export class DictController {
   @HttpCode(200)
   @ApiOperation({ summary: '字典数据-更新' })
   @ApiParam({ name: 'id', description: '字典数据ID' })
+  @RequirePermissions('system:dict:edit')
   updateDictData(
     @Param('id') id: string,
     @Body() updateDictDataDto: UpdateDictDataDto,
@@ -186,6 +196,7 @@ export class DictController {
   @Delete('data/:id')
   @ApiOperation({ summary: '字典数据-删除' })
   @ApiParam({ name: 'id', description: '字典数据ID' })
+  @RequirePermissions('system:dict:remove')
   removeDictData(@Param('id') id: string) {
     return this.dictDataService.remove(+id)
   }
@@ -193,6 +204,7 @@ export class DictController {
   @Get('data/type/:dictType')
   @ApiOperation({ summary: '字典数据-按类型查询' })
   @ApiParam({ name: 'dictType', description: '字典类型' })
+  @RequirePermissions('system:dict:query')
   findDictDataByType(@Param('dictType') dictType: string) {
     return this.dictDataService.findByType(dictType)
   }

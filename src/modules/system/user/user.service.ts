@@ -207,16 +207,35 @@ export class UserService {
     return '删除成功'
   }
 
-  async findPermissionNames(username: string): Promise<string[]> {
+  async findUserPermissions(userId: number): Promise<string[]> {
     const user = await this.userRepository.findOne({
-      where: { username },
+      where: { id: userId },
       relations: ['roles', 'roles.menus'],
     })
     if (user) {
-      const menus = user.roles.flatMap(role => role.menus)
-      const permissions = menus.map(menu => menu.perms)
+      const permissions = user.roles
+        .flatMap(role => role.menus)
+        .map(menu => menu.perms)
+        .filter(Boolean)
 
       return [...new Set(permissions)]
+    } else {
+      return []
+    }
+  }
+
+  async findUserRoles(userId: number): Promise<string[]> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['roles'],
+    })
+    if (user) {
+      const roleKeys = user.roles
+        .filter(role => role.status === 0) // 只获取正常状态的角色
+        .map(role => role.roleKey)
+        .filter(Boolean)
+
+      return [...new Set(roleKeys)]
     } else {
       return []
     }

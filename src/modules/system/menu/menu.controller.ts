@@ -20,7 +20,7 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger'
-import { Permissions } from '@/common/decorators'
+import { RequirePermissions } from '@/common/decorators'
 
 @ApiTags('菜单管理')
 @ApiBearerAuth('JWT-auth')
@@ -35,29 +35,28 @@ export class MenuController {
     type: CreateMenuDto,
     description: '创建菜单信息',
   })
-  @Permissions('system:menu:add')
+  @RequirePermissions('system:menu:add')
   create(@Body() createMenuDto: CreateMenuDto) {
     return this.menuService.create(createMenuDto)
   }
 
   @Get()
   @ApiOperation({ summary: '查询所有菜单' })
-  @Permissions('system:menu:query')
+  @RequirePermissions('system:menu:query')
   findAll(@Query() query: { title?: string; status?: number }) {
     return this.menuService.findAll(query)
   }
 
   @Get('options')
   @ApiOperation({ summary: '菜单下拉选项' })
-  @Permissions('system:menu:query')
-  selectTree() {
+  findOptions() {
     return this.menuService.findOptions()
   }
 
   @Get(':id')
   @ApiOperation({ summary: '查询菜单详情' })
   @ApiParam({ name: 'id', description: '菜单ID', example: 1 })
-  @Permissions('system:menu:query')
+  @RequirePermissions('system:menu:query')
   findOne(@Param('id') id: string) {
     return this.menuService.findOne(+id)
   }
@@ -69,7 +68,7 @@ export class MenuController {
     type: CreateMenuDto,
     description: '更新菜单信息',
   })
-  @Permissions('system:menu:edit')
+  @RequirePermissions('system:menu:edit')
   update(@Param('id') id: string, @Body() updateMenuDto: UpdateMenuDto) {
     return this.menuService.update(+id, updateMenuDto)
   }
@@ -77,7 +76,7 @@ export class MenuController {
   @Delete(':id')
   @ApiOperation({ summary: '删除菜单' })
   @ApiParam({ name: 'id', description: '菜单ID', example: 1 })
-  @Permissions('system:menu:remove')
+  @RequirePermissions('system:menu:remove')
   remove(@Param('id') id: number) {
     return this.menuService.remove(+id)
   }

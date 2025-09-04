@@ -1,19 +1,25 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import type { Request } from 'express'
 import { Injectable, HttpStatus } from '@nestjs/common'
+
+interface AuthenticatedRequest extends Request {
+  user?: any
+}
 import { Reflector } from '@nestjs/core'
-import { AuthService } from './auth.service'
+import { AuthService } from '@/modules/auth/auth.service'
+import { UserService } from '@/modules/system/user/user.service'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class JwtGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private authService: AuthService,
+    private userService: UserService,
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
       context.getHandler(),
       context.getClass(),
@@ -22,7 +28,7 @@ export class JwtAuthGuard implements CanActivate {
       return true
     }
 
-    const request: Request = context.switchToHttp().getRequest()
+    const request: AuthenticatedRequest = context.switchToHttp().getRequest()
     const token = this.extractTokenFromHeader(request)
 
     if (!token) {
@@ -34,7 +40,20 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      this.authService.verifyToken(token)
+      const userInfo = this.authService.verifyToken(token)
+
+      // 获取用户的权限和角色信息
+      const [permissions, roles] = await Promise.all([
+        this.userService.findUserPermissions(userInfo.userId),
+        this.userService.findUserRoles(userInfo.userId),
+      ])
+
+      // 将完整的用户信息设置到请求对象中，供后续守卫使用
+      request.user = {
+        ...userInfo,
+        permissions,
+        roles,
+      }
     } catch {
       throw new ApiException(
         'token验证失败',
@@ -46,7 +65,9 @@ export class JwtAuthGuard implements CanActivate {
     return true
   }
 
-  private extractTokenFromHeader(request: Request): string | undefined {
+  private extractTokenFromHeader(
+    request: AuthenticatedRequest,
+  ): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? []
     return type === 'Bearer' ? token : undefined
   }

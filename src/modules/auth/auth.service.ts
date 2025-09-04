@@ -128,7 +128,7 @@ export class AuthService {
   /**
    * 获取当前用户信息
    * @param token 访问令牌
-   * @returns 用户信息和角色信息
+   * @returns 用户信息、菜单权限和角色权限
    */
   async getUserInfo(token: string) {
     try {
@@ -146,7 +146,15 @@ export class AuthService {
         throw new ApiException('用户不存在', ApiErrorCode.SERVER_ERROR)
       }
 
-      return user
+      // 获取用户的所有菜单权限
+      const permissions = await this.userService.findUserPermissions(
+        payload.userId,
+      )
+
+      return {
+        ...user,
+        permissions,
+      }
     } catch (error) {
       if (error instanceof ApiException) {
         throw error
