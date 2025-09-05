@@ -162,4 +162,30 @@ export class AuthService {
       throw new ApiException('token验证失败', ApiErrorCode.SERVER_ERROR)
     }
   }
+
+  /**
+   * 获取当前用户菜单
+   * @param token 访问令牌
+   * @returns 用户有权限的菜单列表
+   */
+  async getUserMenus(token: string) {
+    try {
+      // 验证并解析token
+      const payload = this.verifyToken(token)
+
+      if (!payload || !payload.userId) {
+        throw new ApiException('token无效', ApiErrorCode.SERVER_ERROR)
+      }
+
+      // 获取用户的所有菜单
+      const menus = await this.userService.findUserMenus(payload.userId)
+
+      return menus
+    } catch (error) {
+      if (error instanceof ApiException) {
+        throw error
+      }
+      throw new ApiException('token验证失败', ApiErrorCode.SERVER_ERROR)
+    }
+  }
 }

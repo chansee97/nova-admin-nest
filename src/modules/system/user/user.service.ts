@@ -240,4 +240,28 @@ export class UserService {
       return []
     }
   }
+
+  async findUserMenus(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['roles', 'roles.menus'],
+    })
+
+    if (!user) {
+      return []
+    }
+
+    // 获取用户所有角色的菜单，去重并过滤掉停用的菜单和权限类型
+    const menus = user.roles
+      .filter(role => role.status === 0) // 只获取正常状态的角色
+      .flatMap(role => role.menus)
+      .filter(menu => menu.status === 0) // 只获取正常状态的菜单
+      .filter(menu => menu.menuType !== 'permission') // 过滤掉权限类型，只保留目录和页面
+      .filter(
+        (menu, index, self) => index === self.findIndex(m => m.id === menu.id),
+      ) // 去重，基于菜单ID
+      .sort((a, b) => a.sort - b.sort) // 按排序字段排序
+
+    return menus
+  }
 }

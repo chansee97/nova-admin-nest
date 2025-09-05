@@ -60,4 +60,16 @@ export class AuthController {
     }
     return this.authService.getUserInfo(token)
   }
+
+  @Get('userMenu')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取当前用户菜单' })
+  getUserMenu(@Headers('authorization') authorization: string) {
+    // 提取Bearer token
+    const token = authorization?.replace('Bearer ', '')
+    if (!token) {
+      throw new Error('未提供token')
+    }
+    return this.authService.getUserMenus(token)
+  }
 }
