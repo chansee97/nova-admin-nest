@@ -1,5 +1,5 @@
 import type { Repository } from 'typeorm'
-import { Like } from 'typeorm'
+import { Like, In } from 'typeorm'
 import type { CreateMenuDto } from './dto/create-menu.dto'
 import type { UpdateMenuDto } from './dto/update-menu.dto'
 import { Injectable } from '@nestjs/common'
@@ -67,11 +67,18 @@ export class MenuService {
   }
 
   // 获取菜单下拉树形结构
-  async findOptions() {
+  async findOptions(excludePermissions = false) {
+    const whereCondition: any = {
+      status: 0,
+    }
+
+    // 如果需要排除权限类型的菜单
+    if (excludePermissions) {
+      whereCondition.menuType = In(['directory', 'page'])
+    }
+
     const menus = await this.menuRepository.find({
-      where: {
-        status: 0,
-      },
+      where: whereCondition,
       select: ['id', 'title', 'parentId'], // 返回需要的字段
       order: { sort: 'ASC' },
     })

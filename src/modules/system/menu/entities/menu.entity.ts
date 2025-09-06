@@ -99,9 +99,23 @@ export class Menu {
   @Column({
     type: 'boolean',
     default: false,
+    comment: '是否固定标签页',
+  })
+  pinTab: boolean
+
+  @Column({
+    type: 'boolean',
+    default: false,
     comment: '是否为外链',
   })
   isLink: boolean
+
+  @Column({
+    length: 500,
+    default: '',
+    comment: '外链地址',
+  })
+  linkPath: string
 
   @Column({
     type: 'boolean',

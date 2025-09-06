@@ -68,6 +68,15 @@ export class CreateMenuDto {
 
   @ApiProperty({
     required: false,
+    description: '外链地址',
+    example: 'https://www.example.com',
+  })
+  @IsString()
+  @IsOptional()
+  linkPath?: string = ''
+
+  @ApiProperty({
+    required: false,
     description: '是否缓存',
     type: Boolean,
     example: true,
@@ -154,6 +163,16 @@ export class CreateMenuDto {
   @IsOptional()
   @IsBoolean()
   tabVisible?: boolean = true
+
+  @ApiProperty({
+    required: false,
+    description: '是否固定标签页',
+    type: Boolean,
+    example: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  pinTab?: boolean = false
 
   @ApiProperty({
     required: false,

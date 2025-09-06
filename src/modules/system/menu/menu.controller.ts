@@ -49,8 +49,9 @@ export class MenuController {
 
   @Get('options')
   @ApiOperation({ summary: '菜单下拉选项' })
-  findOptions() {
-    return this.menuService.findOptions()
+  findOptions(@Query('excludePermissions') excludePermissions?: string) {
+    const shouldExcludePermissions = excludePermissions === 'true'
+    return this.menuService.findOptions(shouldExcludePermissions)
   }
 
   @Get(':id')
