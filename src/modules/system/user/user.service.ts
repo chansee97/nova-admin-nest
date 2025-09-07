@@ -11,6 +11,7 @@ import { ApiException } from '@/common/filters'
 import { encryptData } from '@/utils/crypto'
 import { Role } from '../role/entities/role.entity'
 import { User } from './entities/user.entity'
+import { Menu } from '../menu/entities/menu.entity'
 
 @Injectable()
 export class UserService {
@@ -19,6 +20,8 @@ export class UserService {
     private userRepository: Repository<User>,
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
+    @InjectRepository(Menu)
+    private menuRepository: Repository<Menu>,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -249,6 +252,22 @@ export class UserService {
 
     if (!user) {
       return []
+    }
+
+    // 检查用户是否有admin角色
+    const hasAdminRole = user.roles
+      .filter(role => role.status === 0)
+      .some(role => role.roleKey.includes('admin'))
+
+    if (hasAdminRole) {
+      // 如果有admin角色，返回所有菜单（只返回目录和页面类型）
+      return await this.menuRepository.find({
+        where: {
+          status: 0,
+          menuType: In(['directory', 'page']),
+        },
+        order: { sort: 'ASC' },
+      })
     }
 
     // 获取用户所有角色的菜单，去重并过滤掉停用的菜单和权限类型

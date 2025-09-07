@@ -61,7 +61,6 @@ export class AuthService {
 
   async validateUser(username: string, password: string): Promise<User | null> {
     const user = await this.userService.findOneByUserName(username)
-    console.log(user)
     if (!user) {
       throw new ApiException('用户不存在', ApiErrorCode.SERVER_ERROR)
     }
