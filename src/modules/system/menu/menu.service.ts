@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
-import { buildTree, buildSelectTree } from '@/utils'
+import { buildSelectTree } from '@/utils'
 import { Menu } from './entities/menu.entity'
 
 @Injectable()
@@ -87,25 +87,6 @@ export class MenuService {
       customID: 'id',
       labelKey: 'title',
       valueKey: 'id',
-    })
-  }
-
-  // 根据用户角色获取菜单权限
-  async getMenusByRoles(roleIds: number[]) {
-    if (!roleIds || roleIds.length === 0) {
-      return []
-    }
-
-    const menus = await this.menuRepository
-      .createQueryBuilder('menu')
-      .innerJoin('menu.roles', 'role')
-      .where('role.id IN (:...roleIds)', { roleIds })
-      .andWhere('menu.status = :status', { status: 0 })
-      .orderBy('menu.sort', 'ASC')
-      .getMany()
-
-    return buildTree(menus, {
-      customID: 'id',
     })
   }
 
