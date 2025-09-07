@@ -157,6 +157,28 @@ export class RoleService {
         throw new ApiException('角色不存在', ApiErrorCode.SERVER_ERROR)
       }
 
+      // 检查角色编码是否重复（如果要更新roleKey）
+      if (roleData.roleKey && roleData.roleKey !== role.roleKey) {
+        const existRoleKey = await manager.findOne(Role, {
+          where: { roleKey: roleData.roleKey },
+        })
+
+        if (existRoleKey) {
+          throw new ApiException('角色编码已存在', ApiErrorCode.SERVER_ERROR)
+        }
+      }
+
+      // 检查角色名称是否重复（如果要更新roleName）
+      if (roleData.roleName && roleData.roleName !== role.roleName) {
+        const existRoleName = await manager.findOne(Role, {
+          where: { roleName: roleData.roleName },
+        })
+
+        if (existRoleName) {
+          throw new ApiException('角色名称已存在', ApiErrorCode.SERVER_ERROR)
+        }
+      }
+
       // 更新角色基本信息
       if (Object.keys(roleData).length > 0) {
         Object.assign(role, roleData)
