@@ -16,6 +16,8 @@ const developmentConfig: AppConfig = {
     autoLoadEntities: true,
     logging: ['error', 'warn'],
     namingStrategy: new SnakeCaseNamingStrategy(),
+    retryAttempts: 10,
+    retryDelay: 3000,
     extra: {
       timezone: '+08:00',
     },
