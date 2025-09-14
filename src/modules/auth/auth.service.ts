@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import type { LoginAuthDto } from './dto/login-auth.dto'
 import { UserService } from '@/modules/system/user/user.service'
@@ -8,13 +7,13 @@ import { encryptData } from '@/utils/crypto'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { CaptchaService } from './captcha.service'
+import { config } from '@/config'
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-    private configService: ConfigService,
     private captchaService: CaptchaService,
   ) {}
 
@@ -38,7 +37,7 @@ export class AuthService {
   }
 
   generateToken(user: User) {
-    const jwtConfig = this.configService.get('app.jwt')
+    const jwtConfig = config.jwt
 
     // JWT payload 只包含用户ID
     const payload = {
@@ -72,7 +71,7 @@ export class AuthService {
   }
 
   verifyToken(token: string) {
-    const jwtConfig = this.configService.get('app.jwt')
+    const jwtConfig = config.jwt
     const payload = this.jwtService.verify(token, {
       secret: jwtConfig.secret,
     })
@@ -81,7 +80,7 @@ export class AuthService {
 
   async refreshToken(refreshToken: string) {
     try {
-      const jwtConfig = this.configService.get('app.jwt')
+      const jwtConfig = config.jwt
 
       // 检查是否启用刷新token功能
       if (!jwtConfig.enableRefreshToken) {

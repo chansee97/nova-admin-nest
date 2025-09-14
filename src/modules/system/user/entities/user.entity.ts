@@ -10,7 +10,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
 } from 'typeorm'
 import { Exclude } from 'class-transformer'
 import { DateFormat } from '@/common/decorators'
@@ -22,7 +21,7 @@ import { encryptData } from '@/utils/crypto'
 @Index(['username'])
 @Index(['phone'])
 @Index(['email'])
-@Index(['status', 'deletedAt'])
+@Index(['status'])
 export class User {
   @PrimaryGeneratedColumn({ comment: '用户ID' })
   id: number
@@ -112,13 +111,6 @@ export class User {
     comment: '备注',
   })
   remark: string
-
-  @DeleteDateColumn({
-    comment: '删除时间',
-    nullable: true,
-  })
-  @DateFormat()
-  deletedAt: Date | null
 
   // 多个用户属于一个部门
   @ManyToOne(() => Dept, dept => dept.users, { nullable: true })

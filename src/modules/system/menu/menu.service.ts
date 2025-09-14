@@ -137,7 +137,7 @@ export class MenuService {
       throw new ApiException('菜单不存在', ApiErrorCode.SERVER_ERROR)
     }
 
-    await this.menuRepository.softRemove(menu)
+    await this.menuRepository.remove(menu)
     return
   }
 }

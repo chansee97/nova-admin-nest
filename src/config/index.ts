@@ -1,5 +1,6 @@
-import appConfig from './app.config'
+// Main configuration export
+import config from './config'
 
-export default [appConfig]
+export { config }
 
 export * from './app.config'

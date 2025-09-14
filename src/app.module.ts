@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppController } from './app.controller'
-import configs from './config'
+import appConfig from './config/app.config'
 /* 系统基础块 */
 import { AuthModule } from './modules/auth/auth.module'
 import { SystemModule } from './modules/system/system.module'
@@ -14,7 +14,7 @@ import { getEnvFilePath } from './utils/env'
     /* 全局环境变量 */
     ConfigModule.forRoot({
       envFilePath: getEnvFilePath(),
-      load: [...configs],
+      load: [() => ({ app: appConfig })],
       isGlobal: true,
     }),
     /* 数据库链接 */

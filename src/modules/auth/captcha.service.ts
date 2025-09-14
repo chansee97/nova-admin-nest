@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { v4 as uuidv4 } from 'uuid'
 import { generateCaptchaImage, validateCaptchaText } from '@/utils/captcha'
 import { ApiException } from '@/common/filters'
 import { ApiErrorCode } from '@/common/enums'
+import { config } from '@/config'
 import type { AppConfig } from '@/config/type'
 
 /**
@@ -15,9 +15,8 @@ export class CaptchaService {
   private captchaStore = new Map<string, { code: string; expires: number }>()
   private captchaConfig: AppConfig['captcha']
 
-  constructor(private configService: ConfigService) {
-    this.captchaConfig =
-      this.configService.get<AppConfig['captcha']>('app.captcha')
+  constructor() {
+    this.captchaConfig = config.captcha
   }
 
   /**

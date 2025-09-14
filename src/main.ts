@@ -1,12 +1,12 @@
 import 'reflect-metadata'
 
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { NestFactory, Reflector } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ApiExceptionsFilter, HttpExceptionFilter } from '@/common/filters'
 import { TransformInterceptor } from '@/common/interceptors'
 import { AppModule } from './app.module'
+import { config as appConfig } from '@/config'
 
 async function bootstrap() {
   // 创建服务实例
@@ -54,8 +54,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config)
 
   // 获取服务器配置
-  const appConfigService = app.get(ConfigService)
-  const serverConfig = appConfigService.get('app.server')
+  const serverConfig = appConfig.server
   const baseUrl = `http://localhost:${serverConfig.port}`
 
   // 设置自定义的 JSON 导出路径
@@ -79,8 +78,7 @@ async function bootstrap() {
   })
 
   // 服务启动
-  const configService = app.get(ConfigService)
-  const server = configService.get('app.server')
+  const server = appConfig.server
 
   await app.listen(server.port)
   console.log(`🚀 Application is running on: http://localhost:${server.port}`)

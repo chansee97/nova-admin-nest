@@ -6,7 +6,6 @@ import {
   ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
 } from 'typeorm'
 import { Menu } from '@/modules/system/menu/entities/menu.entity'
 import { User } from '@/modules/system/user/entities/user.entity'
@@ -64,13 +63,6 @@ export class Role {
     comment: '备注',
   })
   remark: string
-
-  @DeleteDateColumn({
-    comment: '删除时间',
-    nullable: true,
-  })
-  @DateFormat()
-  deletedAt: Date | null
 
   // 角色拥有的菜单权限（多对多）
   @ManyToMany(() => Menu, menu => menu.roles)

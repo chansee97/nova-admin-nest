@@ -232,7 +232,7 @@ export class RoleService {
       throw new ApiException('角色不存在', ApiErrorCode.SERVER_ERROR)
     }
 
-    await this.roleRepository.softRemove(role)
+    await this.roleRepository.remove(role)
     return '删除成功'
   }
 }

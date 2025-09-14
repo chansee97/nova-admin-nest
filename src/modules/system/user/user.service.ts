@@ -205,7 +205,7 @@ export class UserService {
       throw new ApiException('用户不存在', ApiErrorCode.SERVER_ERROR)
     }
 
-    await this.userRepository.softRemove(user)
+    await this.userRepository.remove(user)
 
     return '删除成功'
   }

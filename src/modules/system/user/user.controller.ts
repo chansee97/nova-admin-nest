@@ -4,7 +4,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto'
 import type { SearchQuery } from '@/common/dto'
 import { UserService } from './user.service'
 import { JwtService } from '@nestjs/jwt'
-import { ConfigService } from '@nestjs/config'
+import { config } from '@/config'
 import {
   Body,
   Controller,
@@ -36,7 +36,6 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
   ) {}
 
   @Public()
@@ -172,7 +171,7 @@ export class UserController {
 
     // 使用 JwtService 验证并获取用户信息
     try {
-      const jwtConfig = this.configService.get('app.jwt')
+      const jwtConfig = config.jwt
       const payload = this.jwtService.verify(token, {
         secret: jwtConfig.secret,
       })
