@@ -7,6 +7,8 @@ import { encryptData } from '@/utils/crypto'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { CaptchaService } from './captcha.service'
+import { LoginLogService } from '@/modules/monitor/login-log/login-log.service'
+import { ClientInfo } from '@/utils/client-info'
 import { config } from '@/config'
 
 @Injectable()
@@ -15,9 +17,11 @@ export class AuthService {
     private userService: UserService,
     private jwtService: JwtService,
     private captchaService: CaptchaService,
+    private loginLogService: LoginLogService,
   ) {}
 
-  async login(loginAuthDto: LoginAuthDto) {
+  async login(loginAuthDto: LoginAuthDto, clientInfo: ClientInfo) {
+    console.log(loginAuthDto)
     const { username, password, captchaId, captcha } = loginAuthDto
 
     // 验证验证码（如果启用）
@@ -28,12 +32,27 @@ export class AuthService {
       this.captchaService.verifyCaptcha(captchaId || '', captcha || '')
     }
 
-    // 验证用户名密码
-    const user = await this.validateUser(username, password)
-
-    // 生成 Token
-    const token = this.generateToken(user)
-    return token
+    try {
+      // 验证用户名密码
+      const user = await this.validateUser(username, password)
+      await this.loginLogService.create({
+        username,
+        status: '0',
+        msg: '登录成功',
+        ...clientInfo,
+      })
+      // 生成 Token
+      const token = this.generateToken(user)
+      return token
+    } catch (error) {
+      await this.loginLogService.create({
+        username,
+        status: '1',
+        msg: error.message,
+        ...clientInfo,
+      })
+      throw error
+    }
   }
 
   generateToken(user: User) {

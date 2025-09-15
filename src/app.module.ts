@@ -4,6 +4,7 @@ import { AppController } from './app.controller'
 import { config } from '@/config'
 import { AuthModule } from './modules/auth/auth.module'
 import { SystemModule } from './modules/system/system.module'
+import { OperLogModule } from './modules/monitor/oper-log/oper-log.module'
 import {
   APP_PIPE,
   APP_GUARD,
@@ -13,7 +14,10 @@ import {
 } from '@nestjs/core'
 import { ValidationPipe, Logger } from '@nestjs/common'
 import { JwtGuard, AuthGuard } from '@/common/guards'
-import { GlobalInterceptor } from '@/common/interceptors'
+import {
+  GlobalInterceptor,
+  OperationLogInterceptor,
+} from '@/common/interceptors'
 import { HttpExceptionFilter, ApiExceptionsFilter } from '@/common/filters'
 import {
   WinstonModule,
@@ -23,6 +27,7 @@ import * as winston from 'winston'
 
 @Module({
   imports: [
+    OperLogModule,
     /* 日志（全局） */
     WinstonModule.forRoot({
       transports: [
@@ -51,6 +56,10 @@ import * as winston from 'winston'
   ],
   controllers: [AppController],
   providers: [
+    {
+      provide: 'APP_INTERCEPTOR',
+      useClass: OperationLogInterceptor,
+    },
     // 供依赖注入使用的 Logger（由 nest-winston 接管）
     Logger,
     // 全局验证管道：自动验证所有进入的请求的数据

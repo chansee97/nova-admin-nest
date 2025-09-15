@@ -4,6 +4,7 @@ import { CaptchaService } from './captcha.service'
 import { Body, Controller, HttpCode, Post, Get, Headers } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
 import { Public } from '@/common/decorators'
+import { ClientInfo } from '@/common/decorators/client-info.decorator'
 
 @ApiTags('认证管理')
 @Controller()
@@ -24,8 +25,8 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   @ApiOperation({ summary: '用户登录' })
-  login(@Body() loginAuthDto: LoginAuthDto) {
-    return this.authService.login(loginAuthDto)
+  login(@Body() loginAuthDto: LoginAuthDto, @ClientInfo() clientInfo) {
+    return this.authService.login(loginAuthDto, clientInfo)
   }
 
   @Post('logout')
