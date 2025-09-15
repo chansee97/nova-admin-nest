@@ -2,7 +2,5 @@
 
 export * from './captcha'
 export * from './crypto'
-export * from './env'
-export * from './logger'
 export * from './naming-strategy'
 export * from './tree'

@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { AppModule } from './app.module'
 import { config as appConfig } from '@/config'
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
 
 async function bootstrap() {
   // 创建服务实例
@@ -10,9 +11,12 @@ async function bootstrap() {
     cors: true,
   })
 
+  // 使用全局 Winston Logger
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER))
+
   // Swagger 文档配置
   const config = new DocumentBuilder()
-    .setTitle('Nove Admin API')
+    .setTitle('Nova Admin API')
     .setDescription('基于 NestJS + TypeORM 的后台管理系统 API 文档')
     .setVersion(null)
     .addBearerAuth(
@@ -24,7 +28,7 @@ async function bootstrap() {
         description: 'Enter JWT token',
         in: 'header',
       },
-      'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() in your controller!
+      'JWT-auth',
     )
     .addTag('认证管理', '用户登录、注册、验证码等认证相关接口')
     .addTag('用户管理', '用户信息的增删改查、角色分配等接口')
@@ -43,13 +47,12 @@ async function bootstrap() {
   // 设置自定义的 JSON 导出路径
   SwaggerModule.setup('api-docs', app, document, {
     swaggerOptions: {
-      persistAuthorization: true, // 保持登录状态
-      displayOperationId: false, // 隐藏操作ID
-      displayRequestDuration: true, // 显示请求耗时
-      filter: true, // 启用搜索过滤
-      showExtensions: false, // 隐藏扩展信息
-      showCommonExtensions: false, // 隐藏通用扩展
-      // 显示导出链接
+      persistAuthorization: true,
+      displayOperationId: false,
+      displayRequestDuration: true,
+      filter: true,
+      showExtensions: false,
+      showCommonExtensions: false,
       urls: [
         {
           url: `${baseUrl}/api-docs-json`,

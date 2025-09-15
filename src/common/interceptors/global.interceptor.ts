@@ -3,6 +3,7 @@ import {
   HttpStatus,
   Injectable,
   RequestTimeoutException,
+  Logger,
 } from '@nestjs/common'
 import type {
   CallHandler,
@@ -11,7 +12,6 @@ import type {
 } from '@nestjs/common'
 import { Observable, throwError, TimeoutError } from 'rxjs'
 import { catchError, map, tap, timeout } from 'rxjs/operators'
-import { logger } from '@/utils/logger'
 
 export interface Response<T> {
   code: number
@@ -21,48 +21,54 @@ export interface Response<T> {
 
 @Injectable()
 export class GlobalInterceptor<T> implements NestInterceptor<T, Response<T>> {
+  constructor(private readonly logger: Logger) {}
+
   intercept(
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<Response<T>> {
+    const controllerName = context.getClass().name
+    const handlerName = context.getHandler().name
+
+    const http = context.switchToHttp()
+    const req = http.getRequest<Request>()
+    const res = http.getResponse<any>()
+
     return next.handle().pipe(
-      /* 打印请求日志 */
       tap(() => {
-        logger('GLOBAL').info(
-          `Request: ${context.getClass().name} -> ${context.getHandler().name}`,
-        )
+        const statusCode = res?.statusCode ?? 200
+        const payload = {
+          controller: controllerName,
+          handler: handlerName,
+          method: req.method,
+          url: req.url,
+          statusCode,
+        }
+        this.logger.log(JSON.stringify(payload), 'HTTP')
       }),
-      /* 设置30秒超时 */
-      timeout(30000),
-      /* 转换成功响应数据 */
+      timeout(10000),
       map((data: T) => ({
         code: 200,
         data: data || (true as T),
         message: '操作成功',
       })),
-      /* 捕获并处理错误 */
       catchError((err: any) => {
-        // 记录错误日志
-        logger('GLOBAL-ERROR').error(
-          `[${context.getClass().name}] -> [${context.getHandler().name}]`,
-          err.stack,
+        const isTimeout = err instanceof TimeoutError
+
+        this.logger.error(
+          `${controllerName} -> ${handlerName} -> [${req.method}]${req.url} \n${err.stack}`,
+          null,
+          'HTTP',
         )
 
-        // 处理超时错误
-        if (err instanceof TimeoutError) {
+        if (isTimeout) {
           return throwError(() => new RequestTimeoutException('请求超时'))
         }
 
-        // 处理其他 HttpException
-        if (err instanceof HttpException) {
-          return throwError(() => err)
-        }
-
-        // 处理未知错误
         return throwError(
           () =>
             new HttpException(
-              err.message || '服务器内部错误',
+              '服务器内部错误',
               HttpStatus.INTERNAL_SERVER_ERROR,
             ),
         )

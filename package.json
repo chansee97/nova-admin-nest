@@ -4,6 +4,22 @@
   "description": "基于nestjs的基本后台管理系统",
   "author": "Rock Chen",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chansee97/nova-admin-nest.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chansee97/nova-admin-nest/issues"
+  },
+  "homepage": "https://github.com/chansee97/nova-admin-nest#readme",
+  "keywords": [
+    "nestjs",
+    "admin",
+    "rbac",
+    "typeorm",
+    "postgresql",
+    "typescript"
+  ],
   "scripts": {
     "build": "nest build",
     "start": "cross-env NODE_ENV=dev nest start",
@@ -25,14 +41,15 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cross-env": "^10.0.0",
-    "log4js": "^6.9.1",
+    "nest-winston": "^1.10.2",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "svg-captcha": "^1.4.0",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.25",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

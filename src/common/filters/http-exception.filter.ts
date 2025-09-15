@@ -1,23 +1,16 @@
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common'
 import type { Request, Response } from 'express'
-import { Catch, HttpException } from '@nestjs/common'
+import { Catch, HttpException, Injectable } from '@nestjs/common'
 import { isArray } from 'class-validator'
-import { logger } from '@/utils/logger'
 
+@Injectable()
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
-    const request = ctx.getRequest<Request>()
+    ctx.getRequest<Request>()
     const status = exception.getStatus()
-
-    // 输出日志
-    logger('HTTP').error(
-      `[${request.method}]`,
-      `[${request.url}]`,
-      exception.message,
-    )
 
     const response_data = exception.getResponse()
     let message: string

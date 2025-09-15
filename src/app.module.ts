@@ -11,13 +11,37 @@ import {
   APP_FILTER,
   Reflector,
 } from '@nestjs/core'
-import { ValidationPipe } from '@nestjs/common'
+import { ValidationPipe, Logger } from '@nestjs/common'
 import { JwtGuard, AuthGuard } from '@/common/guards'
 import { GlobalInterceptor } from '@/common/interceptors'
 import { HttpExceptionFilter, ApiExceptionsFilter } from '@/common/filters'
+import {
+  WinstonModule,
+  utilities as nestWinstonModuleUtilities,
+} from 'nest-winston'
+import * as winston from 'winston'
 
 @Module({
   imports: [
+    /* 日志（全局） */
+    WinstonModule.forRoot({
+      transports: [
+        new winston.transports.Console({
+          level: process.env.NODE_ENV === 'prod' ? 'info' : 'debug',
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.ms(),
+            nestWinstonModuleUtilities.format.nestLike('Nova', {
+              colors: true,
+              prettyPrint: true,
+              processId: true,
+              appName: true,
+            }),
+          ),
+        }),
+      ],
+    }),
+
     /* 数据库链接 */
     TypeOrmModule.forRootAsync({
       useFactory: () => config.database,
@@ -27,6 +51,8 @@ import { HttpExceptionFilter, ApiExceptionsFilter } from '@/common/filters'
   ],
   controllers: [AppController],
   providers: [
+    // 供依赖注入使用的 Logger（由 nest-winston 接管）
+    Logger,
     // 全局验证管道：自动验证所有进入的请求的数据
     {
       provide: APP_PIPE,
