@@ -1,6 +1,6 @@
 <div align="center">
   <img src="./nova.icon.svg" width="160"/>
-  <h2>nova-admin-nestjs</h2>
+  <h2>nova-admin-nest</h2>
 </div>
 
 <div align="center">
@@ -20,6 +20,7 @@
 - **菜单权限**: 动态菜单生成，精确到按钮级别的权限控制
 - **接口权限**: 基于装饰器的接口权限验证
 - **数据权限**: 支持部门数据权限隔离
+- **验证码**: 内置图形验证码（支持数学、大小写敏感配置）
 
 ## 🏗 系统架构
 
@@ -28,19 +29,19 @@
 ```
 src/
 ├── modules/           # 业务模块
-│   ├── auth/         # 认证模块
-│   ├── user/         # 用户管理
-│   ├── role/         # 角色管理
-│   ├── menu/         # 菜单管理
-│   ├── dept/         # 部门管理
-│   └── dict/         # 字典管理
-├── common/           # 公共模块
-│   ├── decorators/   # 装饰器
-│   ├── filters/      # 异常过滤器
-│   ├── guards/       # 守卫
-│   ├── interceptor/  # 拦截器
-│   └── enum/         # 枚举定义
-└── utils/            # 工具函数
+│   ├── auth/          # 认证模块
+│   ├── user/          # 用户管理
+│   ├── role/          # 角色管理
+│   ├── menu/          # 菜单管理
+│   ├── dept/          # 部门管理
+│   └── dict/          # 字典管理
+├── common/            # 公共模块
+│   ├── decorators/    # 装饰器
+│   ├── filters/       # 异常过滤器
+│   ├── guards/        # 守卫
+│   ├── interceptors/  # 拦截器
+│   └── enums/         # 枚举定义
+└── utils/             # 工具函数
 ```
 
 ### 🗄 数据库设计
@@ -53,14 +54,39 @@ src/
 - **sys_dict_data**: 字典数据表
 - **sys_user_role**: 用户角色关联表
 - **sys_role_menu**: 角色菜单关联表
+- **sys_role_dept**: 角色部门关联表（数据权限）
+
+### 📐 数据库规范
+
+- **命名风格**: 列名、索引名、外键名统一蛇形命名（snake_case），由自定义 `SnakeCaseNamingStrategy` 自动转换
+  - 索引名：`idx_<table>_<columns>`，如 `idx_sys_user_username`
+  - 唯一约束：`uk_<table>_<columns>`
+  - 外键名：`fk_<table>_<column>`
+  - 主键名：`pk_<table>`
+- **主键策略**: 各表主键 `id` 使用自增整型（`@PrimaryGeneratedColumn`）
+- **审计字段**: 统一包含 `create_time`、`update_time`，由 `@CreateDateColumn`、`@UpdateDateColumn` 自动维护，并通过 `@DateFormat()` 统一格式化输出
+- **关系约定**:
+  - 外键列显式命名（如用户表 `dept_id`），并建立必要索引
+- **类型与长度**:
+  - 文本字段明确长度限制（如账号 30、邮件 50、权限标识 100 等）
+  - 枚举类型使用数据库枚举（如性别、菜单类型）
+- **字段默认值**:
+  - 时间：`create_time`、`update_time` 由数据库默认 `now()`/`CURRENT_TIMESTAMP` 或 ORM 自动维护
+  - 字符串：非必填字符串统一默认空字符串 `''`（如 `remark`、`avatar`、`nick_name` 等）
+  - 数值：业务状态类字段采用明确默认值（如 `status` 默认为 `0`）
+  - 布尔：显式给出默认（如 `menu_visible`、`tab_visible` 默认为 `true`；`pin_tab`、`is_link`、`keep_alive` 默认为 `false`）
+  - 枚举：提供安全的默认项（如性别 `unknown`、菜单类型 `directory`）
+  - 外键：可空外键（如 `dept_id`）默认 `NULL`，并使用 `ON DELETE SET NULL` 或在业务层保护
+- **迁移与同步**:
+  - 开发环境允许 `synchronize: true`；生产环境建议关闭并使用迁移工具
 
 ## 🌐 前端项目
 
-[Nova Admin](https://github.com/chansee97/nova-admin) - 基于 Vue3 + TypeScript + Element Plus 的前端管理系统
+[Nova Admin](https://github.com/chansee97/nova-admin) - 基于 Vue3 + TypeScript + Naive UI 的前端管理系统
 
 ## 📚 API 文档
 
-启动项目后访问：[http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+启动项目后访问：[`http://localhost:3000/api-docs`](http://localhost:3000/api-docs)
 
 ## 🚀 快速开始
 
@@ -76,34 +102,56 @@ src/
 pnpm install
 ```
 
-### ⚙️ 环境配置
+### ⚙️ 配置说明
 
-修改数据库配置：
+本项目通过代码化配置区分环境，而非使用 `.env` 文件。根据 `NODE_ENV` 读取以下文件：
 
-```env
-# 数据库配置
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=your_password
-DB_DATABASE=nova_admin
+- 开发环境：`src/config/env/dev.ts`
+- 生产环境：`src/config/env/prod.ts`
 
-# JWT 配置
-JWT_SECRET=your_jwt_secret
-JWT_EXPIRES_IN=7d
+默认开发环境数据库配置（可在 `dev.ts` 中修改）：
+
+```ts
+// src/config/env/dev.ts
+export default {
+  server: { port: 3000 },
+  database: {
+    type: 'postgres',
+    host: '127.0.0.1',
+    port: 5432,
+    username: 'root',
+    password: 'postgres',
+    database: 'nova_db',
+    synchronize: true,
+    autoLoadEntities: true,
+  },
+  jwt: {
+    secret: 'secret-key',
+    expiresIn: '7d',
+  },
+}
 ```
+
+> 提示：`synchronize: true` 仅建议在开发环境使用，生产环境请改为 `false` 并使用迁移。
+
+如需初始化表结构或示例数据，可参考根目录的 `example.sql`。
 
 ### 🏃‍♂️ 运行项目
 
 ```bash
-# 开发环境
-npm run start:dev
+# 开发环境（会自动设置 NODE_ENV=dev）
+pnpm start:dev
 
-# 生产环境
-npm run start:prod
+# 生产环境构建与运行（会自动设置 NODE_ENV=prod）
+pnpm build
+pnpm start:prod
 
 # 类型检查
-npm run type-check
+pnpm run type-check
+
+# 代码风格（ESLint & Prettier）
+pnpm run lint
+pnpm run format
 ```
 
 ## 📖 开发指南
@@ -114,8 +162,8 @@ npm run type-check
 
 ```bash
 src/modules/your-module/
-├── entities/          # 实体定义
-├── dto/              # 数据传输对象
+├── entities/               # 实体定义
+├── dto/                    # 数据传输对象
 ├── your-module.controller.ts
 ├── your-module.service.ts
 └── your-module.module.ts
@@ -123,17 +171,57 @@ src/modules/your-module/
 
 2. 在 `app.module.ts` 中注册模块
 
-3. 添加相应的权限和菜单配置
+3. 添加相应的权限与菜单配置（按需使用 `@Permissions()` 装饰器）
 
 ### 🎯 权限控制
 
-使用 `@Permissions()` 装饰器控制接口权限：
+项目提供统一的权限装饰器（从 `src/common/decorators` 导入）：
 
-```typescript
-@Get('list')
-@Permissions('system:user:query')
-findAll() {
-  // 需要 system:user:query 权限才能访问
+- `Public()`：标记公开接口，跳过认证与权限校验
+- `RequirePermissions(...permissions: string[])`：仅校验权限标识
+- `RequireRoles(...roles: string[])`：仅校验角色标识
+- `RequireAuth(permissions: string[], roles: string[])`：同时校验权限与角色
+
+示例：
+
+```ts
+import { Controller, Get } from '@nestjs/common'
+import {
+  Public,
+  RequirePermissions,
+  RequireRoles,
+  RequireAuth,
+} from '@/common/decorators'
+
+@Controller('user')
+export class UserController {
+  // 公开接口（无需登录）
+  @Get('captcha')
+  @Public()
+  getCaptcha() {
+    return 'ok'
+  }
+
+  // 仅权限校验
+  @Get('list')
+  @RequirePermissions('system:user:query')
+  findAll() {
+    return []
+  }
+
+  // 仅角色校验
+  @Get('admin-only')
+  @RequireRoles('admin')
+  adminOnly() {
+    return 'admin'
+  }
+
+  // 同时校验权限与角色
+  @Get('assign')
+  @RequireAuth(['system:user:assign'], ['admin'])
+  assign() {
+    return 'ok'
+  }
 }
 ```
 
