@@ -1,19 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsOptional, IsString, ValidateNested, IsInt } from 'class-validator'
+import { IsOptional, IsString, IsInt } from 'class-validator'
 import { Type } from 'class-transformer'
 import { SearchQuery } from '@/common/dto/page.dto'
-
-class DateRangeDto {
-  @ApiProperty({ description: '开始时间', required: false })
-  @IsOptional()
-  @IsString()
-  beginTime?: string
-
-  @ApiProperty({ description: '结束时间', required: false })
-  @IsOptional()
-  @IsString()
-  endTime?: string
-}
 
 export class ReqOperLogDto extends SearchQuery {
   @ApiProperty({ description: '模块标题', required: false })
@@ -32,9 +20,8 @@ export class ReqOperLogDto extends SearchQuery {
   @IsInt()
   status?: number
 
-  @ApiProperty({ description: '日期范围', required: false, type: DateRangeDto })
+  @ApiProperty({ description: '操作时间', required: false })
   @IsOptional()
-  @ValidateNested()
-  @Type(() => DateRangeDto)
-  params?: DateRangeDto
+  @IsString()
+  operTime?: string
 }

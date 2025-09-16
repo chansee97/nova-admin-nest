@@ -30,7 +30,7 @@ export class OperLogService {
       title,
       operName,
       status,
-      params,
+      operTime,
     } = reqOperLogDto
 
     const where: any = {}
@@ -43,11 +43,9 @@ export class OperLogService {
     if (status) {
       where.status = status
     }
-    if (params?.beginTime && params?.endTime) {
-      where.operTime = Between(
-        new Date(params.beginTime),
-        new Date(params.endTime),
-      )
+    if (operTime) {
+      const [beginTime, endTime] = operTime.split(',')
+      where.operTime = Between(new Date(beginTime), new Date(endTime))
     }
 
     const [list, total] = await this.operLogRepository.findAndCount({

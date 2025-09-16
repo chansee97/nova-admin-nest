@@ -30,7 +30,7 @@ export class LoginLogService {
       username,
       ipaddr,
       status,
-      params,
+      loginTime,
     } = reqLoginLogDto
 
     const where: any = {}
@@ -43,11 +43,9 @@ export class LoginLogService {
     if (status) {
       where.status = status
     }
-    if (params?.beginTime && params?.endTime) {
-      where.loginTime = Between(
-        new Date(params.beginTime),
-        new Date(params.endTime),
-      )
+    if (loginTime) {
+      const [beginTime, endTime] = loginTime.split(',')
+      where.loginTime = Between(new Date(beginTime), new Date(endTime))
     }
 
     const [list, total] = await this.loginLogRepository.findAndCount({
