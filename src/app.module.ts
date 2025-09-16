@@ -4,7 +4,7 @@ import { AppController } from './app.controller'
 import { config } from '@/config'
 import { AuthModule } from './modules/auth/auth.module'
 import { SystemModule } from './modules/system/system.module'
-import { OperLogModule } from './modules/monitor/oper-log/oper-log.module'
+import { MonitorModule } from './modules/monitor/monitor.module'
 import {
   APP_PIPE,
   APP_GUARD,
@@ -27,7 +27,6 @@ import * as winston from 'winston'
 
 @Module({
   imports: [
-    OperLogModule,
     /* 日志（全局） */
     WinstonModule.forRoot({
       transports: [
@@ -53,6 +52,7 @@ import * as winston from 'winston'
     }),
     AuthModule,
     SystemModule,
+    MonitorModule,
   ],
   controllers: [AppController],
   providers: [
