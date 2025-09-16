@@ -29,7 +29,6 @@ export class OperLogService {
       pageSize = 10,
       title,
       operName,
-      businessType,
       status,
       params,
     } = reqOperLogDto
@@ -41,9 +40,6 @@ export class OperLogService {
     if (operName) {
       where.operName = Like(`%${operName}%`)
     }
-    if (businessType) {
-      where.businessType = businessType
-    }
     if (status) {
       where.status = status
     }
@@ -54,16 +50,20 @@ export class OperLogService {
       )
     }
 
-    const [rows, total] = await this.operLogRepository.findAndCount({
+    const [list, total] = await this.operLogRepository.findAndCount({
       where,
       skip: (pageNum - 1) * pageSize,
       take: pageSize,
+      select: {
+        operParam: false,
+        jsonResult: false,
+      },
       order: {
         id: 'DESC',
       },
     })
 
-    return { rows, total }
+    return { list, total }
   }
 
   /**

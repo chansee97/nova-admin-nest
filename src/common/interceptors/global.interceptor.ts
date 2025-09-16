@@ -33,19 +33,13 @@ export class GlobalInterceptor<T> implements NestInterceptor<T, Response<T>> {
 
     const http = context.switchToHttp()
     const req = http.getRequest<Request>()
-    const res = http.getResponse<any>()
 
     return next.handle().pipe(
       tap(() => {
-        const statusCode = res?.statusCode ?? 200
-        const payload = {
-          controller: controllerName,
-          handler: handlerName,
-          method: req.method,
-          url: req.url,
-          statusCode,
-        }
-        this.logger.log(JSON.stringify(payload), 'HTTP')
+        this.logger.log(
+          `${controllerName} -> ${handlerName} -> [${req.method}]${req.url}`,
+          'HTTP',
+        )
       }),
       timeout(config.server.requestTimeoutMs ?? 30000),
       map((data: T) => ({
@@ -57,8 +51,8 @@ export class GlobalInterceptor<T> implements NestInterceptor<T, Response<T>> {
         const isTimeout = err instanceof TimeoutError
 
         this.logger.error(
-          `${controllerName} -> ${handlerName} -> [${req.method}]${req.url} \n${err.stack}`,
-          null,
+          `${controllerName} -> ${handlerName} -> [${req.method}]${req.url}`,
+          err.stack,
           'HTTP',
         )
 

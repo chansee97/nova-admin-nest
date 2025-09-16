@@ -4,6 +4,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm'
+import { DateFormat } from '@/common/decorators'
 
 @Entity({ name: 'sys_oper_log' })
 export class OperLog {
@@ -12,14 +13,6 @@ export class OperLog {
 
   @Column({ comment: '模块标题' })
   title: string
-
-  @Column({
-    comment: '业务类型',
-    type: 'char',
-    length: 1,
-    default: '0',
-  })
-  businessType: string
 
   @Column({ comment: '方法名称', default: '' })
   method: string
@@ -56,11 +49,10 @@ export class OperLog {
 
   @Column({
     comment: '操作状态（0正常 1异常）',
-    type: 'char',
-    length: 1,
-    default: '0',
+    type: 'int',
+    default: 0,
   })
-  status: string
+  status: number
 
   @Column({ comment: '错误消息', default: '' })
   errorMsg: string
@@ -68,6 +60,7 @@ export class OperLog {
   @Column({ comment: '消耗时间', default: '' })
   costTime: string
 
+  @DateFormat()
   @CreateDateColumn({ comment: '操作时间' })
   operTime: Date
 }

@@ -4,7 +4,7 @@ import { generateCaptchaImage, validateCaptchaText } from '@/utils/captcha'
 import { ApiException } from '@/common/filters'
 import { ApiErrorCode } from '@/common/enums'
 import { config } from '@/config'
-import type { AppConfig } from '@/config/type'
+import type { AppConfig } from '@/config'
 
 /**
  * 验证码服务

@@ -42,18 +42,15 @@ export class JwtGuard implements CanActivate {
     try {
       const userInfo = this.authService.verifyToken(token)
 
-      // 获取用户的权限和角色信息
-      const [permissions, roles] = await Promise.all([
+      // 获取用户的权限、角色和基础信息
+      const [permissions, roles, user] = await Promise.all([
         this.userService.findUserPermissions(userInfo.userId),
         this.userService.findUserRoles(userInfo.userId),
+        this.userService.findOne(userInfo.userId),
       ])
 
-      // 将完整的用户信息设置到请求对象中，供后续守卫使用
-      request.user = {
-        ...userInfo,
-        permissions,
-        roles,
-      }
+      // 直接将完整的用户对象设置到请求对象，同时合并权限与角色
+      request.user = { ...user, permissions, roles }
     } catch {
       throw new ApiException(
         'token验证失败',

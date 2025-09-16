@@ -27,15 +27,15 @@ export class LoginLogService {
     const {
       pageNum = 1,
       pageSize = 10,
-      userName,
+      username,
       ipaddr,
       status,
       params,
     } = reqLoginLogDto
 
     const where: any = {}
-    if (userName) {
-      where.userName = Like(`%${userName}%`)
+    if (username) {
+      where.username = Like(`%${username}%`)
     }
     if (ipaddr) {
       where.ipaddr = Like(`%${ipaddr}%`)
@@ -50,7 +50,7 @@ export class LoginLogService {
       )
     }
 
-    const [rows, total] = await this.loginLogRepository.findAndCount({
+    const [list, total] = await this.loginLogRepository.findAndCount({
       where,
       skip: (pageNum - 1) * pageSize,
       take: pageSize,
@@ -59,7 +59,7 @@ export class LoginLogService {
       },
     })
 
-    return { rows, total }
+    return { list, total }
   }
 
   /**

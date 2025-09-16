@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsOptional, IsString, ValidateNested } from 'class-validator'
+import { IsOptional, IsString, ValidateNested, IsInt } from 'class-validator'
 import { Type } from 'class-transformer'
 import { SearchQuery } from '@/common/dto/page.dto'
 
@@ -19,7 +19,7 @@ export class ReqLoginLogDto extends SearchQuery {
   @ApiProperty({ description: '用户账号', required: false })
   @IsOptional()
   @IsString()
-  userName?: string
+  username?: string
 
   @ApiProperty({ description: '登录IP地址', required: false })
   @IsOptional()
@@ -28,8 +28,9 @@ export class ReqLoginLogDto extends SearchQuery {
 
   @ApiProperty({ description: '登录状态（0成功 1失败）', required: false })
   @IsOptional()
-  @IsString()
-  status?: string
+  @Type(() => Number)
+  @IsInt()
+  status?: number
 
   @ApiProperty({ description: '日期范围', required: false, type: DateRangeDto })
   @IsOptional()

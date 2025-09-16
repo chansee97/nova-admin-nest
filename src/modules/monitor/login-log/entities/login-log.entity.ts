@@ -4,6 +4,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm'
+import { DateFormat } from '@/common/decorators'
 
 @Entity({ name: 'sys_login_log' })
 export class LoginLog {
@@ -25,12 +26,13 @@ export class LoginLog {
   @Column({ length: 50, comment: '操作系统' })
   os: string
 
-  @Column({ comment: '登录状态（0成功 1失败）', default: '0' })
-  status: string
+  @Column({ comment: '登录状态（0成功 1失败）', type: 'int', default: 0 })
+  status: number
 
   @Column({ length: 255, comment: '提示消息', default: '' })
   msg: string
 
+  @DateFormat()
   @CreateDateColumn({ comment: '访问时间' })
   loginTime: Date
 }

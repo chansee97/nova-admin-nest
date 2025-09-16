@@ -21,7 +21,6 @@ export class AuthService {
   ) {}
 
   async login(loginAuthDto: LoginAuthDto, clientInfo: ClientInfo) {
-    console.log(loginAuthDto)
     const { username, password, captchaId, captcha } = loginAuthDto
 
     // 验证验证码（如果启用）
@@ -37,7 +36,7 @@ export class AuthService {
       const user = await this.validateUser(username, password)
       await this.loginLogService.create({
         username,
-        status: '0',
+        status: 0,
         msg: '登录成功',
         ...clientInfo,
       })
@@ -47,7 +46,7 @@ export class AuthService {
     } catch (error) {
       await this.loginLogService.create({
         username,
-        status: '1',
+        status: 1,
         msg: error.message,
         ...clientInfo,
       })

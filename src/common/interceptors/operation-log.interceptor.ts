@@ -20,12 +20,17 @@ export class OperationLogInterceptor implements NestInterceptor {
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const logMeta = this.reflector.get<{ businessType: number }>(
+    // Check for logging enabled at handler-level or class-level
+    const handlerLogEnabled = this.reflector.get<boolean>(
       LOG_KEY,
       context.getHandler(),
     )
+    const classLogEnabled = this.reflector.get<boolean>(
+      LOG_KEY,
+      context.getClass(),
+    )
 
-    if (!logMeta) {
+    if (!handlerLogEnabled && !classLogEnabled) {
       return next.handle()
     }
 
@@ -44,7 +49,6 @@ export class OperationLogInterceptor implements NestInterceptor {
       context.getHandler(),
     )
     operLog.title = apiOperation?.summary || ''
-    operLog.businessType = logMeta.businessType.toString()
 
     operLog.method = `${context.getClass().name}.${context.getHandler().name}`
     operLog.requestMethod = method
@@ -68,14 +72,14 @@ export class OperationLogInterceptor implements NestInterceptor {
       tap(data => {
         const costTime = performance.now() - startTime
         operLog.costTime = `${costTime.toFixed(2)}ms`
-        operLog.status = '0' // Success
-        operLog.jsonResult = JSON.stringify(data)
+        operLog.status = 0 // Success
+        operLog.jsonResult = data.message
         void this.operLogService.create(operLog)
       }),
       catchError(err => {
         const costTime = performance.now() - startTime
         operLog.costTime = `${costTime.toFixed(2)}ms`
-        operLog.status = '1' // Error
+        operLog.status = 1 // Error
         operLog.errorMsg = err.message
         void this.operLogService.create(operLog)
         return throwError(() => err)
