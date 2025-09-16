@@ -12,6 +12,7 @@ import type {
 } from '@nestjs/common'
 import { Observable, throwError, TimeoutError } from 'rxjs'
 import { catchError, map, tap, timeout } from 'rxjs/operators'
+import { config } from '@/config'
 
 export interface Response<T> {
   code: number
@@ -46,7 +47,7 @@ export class GlobalInterceptor<T> implements NestInterceptor<T, Response<T>> {
         }
         this.logger.log(JSON.stringify(payload), 'HTTP')
       }),
-      timeout(10000),
+      timeout(config.server.requestTimeoutMs ?? 30000),
       map((data: T) => ({
         code: 200,
         data: data || (true as T),

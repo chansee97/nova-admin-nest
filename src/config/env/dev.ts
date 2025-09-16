@@ -1,9 +1,10 @@
 import { SnakeCaseNamingStrategy } from '@/utils/naming-strategy'
-import { AppConfig } from '../type'
+import { AppConfig } from '..'
 
 const developmentConfig: AppConfig = {
   server: {
     port: 3000,
+    requestTimeoutMs: 30000,
   },
   database: {
     type: 'postgres',
