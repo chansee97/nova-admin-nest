@@ -1,4 +1,5 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm'
+import { RedisOptions } from 'ioredis'
 import config from './config'
 
 export { config }
@@ -22,6 +23,7 @@ export interface AppConfig {
     type: 'text' | 'math'
     caseSensitive: boolean
   }
+  redis: RedisOptions
 }
 
 export * from './app.config'

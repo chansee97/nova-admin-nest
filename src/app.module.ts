@@ -5,6 +5,7 @@ import { config } from '@/config'
 import { AuthModule } from './modules/auth/auth.module'
 import { SystemModule } from './modules/system/system.module'
 import { MonitorModule } from './modules/monitor/monitor.module'
+import { RedisModule } from './modules/redis/redis.module'
 import {
   APP_PIPE,
   APP_GUARD,
@@ -53,6 +54,7 @@ import * as winston from 'winston'
     AuthModule,
     SystemModule,
     MonitorModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [

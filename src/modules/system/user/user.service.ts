@@ -1,17 +1,16 @@
-import type { Repository } from 'typeorm'
-import type { CreateUserDto } from './dto/create-user.dto'
-import type { UpdateUserDto } from './dto/update-user.dto'
-import type { UpdatePasswordDto } from './dto/update-password.dto'
-import type { SearchQuery } from '@/common/dto/page.dto'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { In, Like } from 'typeorm'
+import { In, Like, Repository } from 'typeorm'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { encryptData } from '@/utils/crypto'
 import { Role } from '../role/entities/role.entity'
 import { User } from './entities/user.entity'
 import { Menu } from '../menu/entities/menu.entity'
+import { CreateUserDto } from './dto/create-user.dto'
+import { UpdateUserDto } from './dto/update-user.dto'
+import { UpdatePasswordDto } from './dto/update-password.dto'
+import { SearchQuery } from '@/common/dto/page.dto'
 
 @Injectable()
 export class UserService {
@@ -93,7 +92,7 @@ export class UserService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<User> {
     const user = await this.userRepository.findOne({
       where: {
         id: id,
@@ -221,7 +220,8 @@ export class UserService {
         .map(menu => menu.perms)
         .filter(Boolean)
 
-      return [...new Set(permissions)]
+      const uniquePermissions = [...new Set(permissions)]
+      return uniquePermissions
     } else {
       return []
     }
@@ -238,7 +238,8 @@ export class UserService {
         .map(role => role.roleKey)
         .filter(Boolean)
 
-      return [...new Set(roleKeys)]
+      const uniqueRoleKeys = [...new Set(roleKeys)]
+      return uniqueRoleKeys
     } else {
       return []
     }

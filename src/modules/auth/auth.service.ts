@@ -8,6 +8,8 @@ import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { CaptchaService } from './captcha.service'
 import { LoginLogService } from '@/modules/monitor/login-log/login-log.service'
+import { RedisService } from '@/modules/redis/redis.service'
+import { RedisKey } from '@/common/enums'
 import { ClientInfo } from '@/utils/client-info'
 import { config } from '@/config'
 
@@ -18,6 +20,7 @@ export class AuthService {
     private jwtService: JwtService,
     private captchaService: CaptchaService,
     private loginLogService: LoginLogService,
+    private readonly redisService: RedisService,
   ) {}
 
   async login(loginAuthDto: LoginAuthDto, clientInfo: ClientInfo) {
@@ -25,10 +28,10 @@ export class AuthService {
 
     // 验证验证码（如果启用）
     if (captchaId && captcha) {
-      this.captchaService.verifyCaptcha(captchaId, captcha)
+      await this.captchaService.verifyCaptcha(captchaId, captcha)
     } else {
       // 如果验证码启用但未提供，则验证会在 verifyCaptcha 中处理
-      this.captchaService.verifyCaptcha(captchaId || '', captcha || '')
+      await this.captchaService.verifyCaptcha(captchaId || '', captcha || '')
     }
 
     try {
@@ -40,9 +43,53 @@ export class AuthService {
         msg: '登录成功',
         ...clientInfo,
       })
+      // 获取用户权限和角色
+      const [permissions, roles] = await Promise.all([
+        this.userService.findUserPermissions(user.id),
+        this.userService.findUserRoles(user.id),
+      ])
+
+      // 创建会话数据
+      const sessionData = {
+        ...user,
+        ...clientInfo,
+        permissions,
+        roles,
+      }
+
+      // 将会话数据存入 Redis
+      const sessionKey = `${RedisKey.USER_SESSION}${user.id}`
+      const jwtConfig = config.jwt
+      // 将 jwt aign 的过期时间字符串转换为秒数
+      const expiresInString = jwtConfig.expiresIn
+      let expiresInSeconds: number
+      const unit = expiresInString.slice(-1)
+      const value = parseInt(expiresInString.slice(0, -1), 10)
+
+      if (isNaN(value)) {
+        expiresInSeconds = parseInt(expiresInString, 10)
+      } else {
+        switch (unit) {
+          case 'd':
+            expiresInSeconds = value * 24 * 3600
+            break
+          case 'h':
+            expiresInSeconds = value * 3600
+            break
+          case 'm':
+            expiresInSeconds = value * 60
+            break
+          default:
+            expiresInSeconds = value
+            break
+        }
+      }
+
+      // 使用 access token 的过期时间作为 redis 的过期时间
+      await this.redisService.set(sessionKey, sessionData, expiresInSeconds)
+
       // 生成 Token
-      const token = this.generateToken(user)
-      return token
+      return this.generateToken(user)
     } catch (error) {
       await this.loginLogService.create({
         username,
@@ -88,12 +135,23 @@ export class AuthService {
     return user
   }
 
-  verifyToken(token: string) {
-    const jwtConfig = config.jwt
-    const payload = this.jwtService.verify(token, {
-      secret: jwtConfig.secret,
-    })
-    return payload
+  async verifyToken(token: string) {
+    try {
+      if (!token) {
+        throw new ApiException('token为空', ApiErrorCode.SERVER_ERROR)
+      }
+
+      const jwtConfig = config.jwt
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: jwtConfig.secret,
+      })
+      return payload
+    } catch (error) {
+      throw new ApiException(
+        `token验证失败: ${error.message}`,
+        ApiErrorCode.SERVER_ERROR,
+      )
+    }
   }
 
   async refreshToken(refreshToken: string) {
@@ -126,14 +184,13 @@ export class AuthService {
    * @param token 访问令牌
    * @returns 退出结果
    */
-  logout(token: string) {
+  async logout(token: string) {
     try {
-      // 验证token是否有效
-      this.verifyToken(token)
-
-      // 这里可以添加token黑名单逻辑
-      // 例如：将token添加到Redis黑名单中
-      // await this.redisService.set(`blacklist:${token}`, '1', jwtConfig.expiresIn)
+      // 验证token并获取payload
+      const payload = await this.verifyToken(token)
+      if (payload && payload.userId) {
+        await this.redisService.del(`${RedisKey.USER_SESSION}${payload.userId}`)
+      }
 
       return '退出登录成功'
     } catch {
@@ -149,7 +206,7 @@ export class AuthService {
   async getUserInfo(token: string) {
     try {
       // 验证并解析token
-      const payload = this.verifyToken(token)
+      const payload = await this.verifyToken(token)
 
       if (!payload || !payload.userId) {
         throw new ApiException('token无效', ApiErrorCode.SERVER_ERROR)
@@ -187,15 +244,15 @@ export class AuthService {
   async getUserMenus(token: string) {
     try {
       // 验证并解析token
-      const payload = this.verifyToken(token)
-
+      const payload = await this.verifyToken(token)
+      console.log('token验证成功:', payload)
       if (!payload || !payload.userId) {
         throw new ApiException('token无效', ApiErrorCode.SERVER_ERROR)
       }
 
       // 获取用户的所有菜单
       const menus = await this.userService.findUserMenus(payload.userId)
-
+      console.log('用户菜单:', menus)
       return menus
     } catch (error) {
       if (error instanceof ApiException) {

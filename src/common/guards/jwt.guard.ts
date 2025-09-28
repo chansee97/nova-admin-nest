@@ -7,7 +7,8 @@ interface AuthenticatedRequest extends Request {
 }
 import { Reflector } from '@nestjs/core'
 import { AuthService } from '@/modules/auth/auth.service'
-import { UserService } from '@/modules/system/user/user.service'
+import { RedisService } from '@/modules/redis/redis.service'
+import { RedisKey } from '@/common/enums'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 
@@ -16,7 +17,7 @@ export class JwtGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private authService: AuthService,
-    private userService: UserService,
+    private redisService: RedisService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -40,18 +41,24 @@ export class JwtGuard implements CanActivate {
     }
 
     try {
-      const userInfo = this.authService.verifyToken(token)
+      const userInfo: any = await this.authService.verifyToken(token)
 
-      // 获取用户的权限、角色和基础信息
-      const [permissions, roles, user] = await Promise.all([
-        this.userService.findUserPermissions(userInfo.userId),
-        this.userService.findUserRoles(userInfo.userId),
-        this.userService.findOne(userInfo.userId),
-      ])
+      // 从 Redis 获取会话信息
+      const sessionKey = `${RedisKey.USER_SESSION}${userInfo.userId}`
+      const session = await this.redisService.get<any>(sessionKey)
 
-      // 直接将完整的用户对象设置到请求对象，同时合并权限与角色
-      request.user = { ...user, permissions, roles }
-    } catch {
+      if (!session) {
+        throw new ApiException(
+          '用户会话已过期或不存在',
+          ApiErrorCode.SERVER_ERROR,
+          HttpStatus.UNAUTHORIZED,
+        )
+      }
+
+      // 将会话中的用户信息附加到请求对象
+      request.user = session.user
+    } catch (error) {
+      console.log('token验证失败:', error)
       throw new ApiException(
         'token验证失败',
         ApiErrorCode.SERVER_ERROR,

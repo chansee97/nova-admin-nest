@@ -1,10 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  RequestTimeoutException,
-  Logger,
-} from '@nestjs/common'
+import { Injectable, RequestTimeoutException, Logger } from '@nestjs/common'
 import type {
   CallHandler,
   ExecutionContext,
@@ -60,13 +54,7 @@ export class GlobalInterceptor<T> implements NestInterceptor<T, Response<T>> {
           return throwError(() => new RequestTimeoutException('请求超时'))
         }
 
-        return throwError(
-          () =>
-            new HttpException(
-              '服务器内部错误',
-              HttpStatus.INTERNAL_SERVER_ERROR,
-            ),
-        )
+        return throwError(() => err)
       }),
     )
   }
