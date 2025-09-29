@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Inject } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import type { LoginAuthDto } from './dto/login-auth.dto'
 import { UserService } from '@/modules/system/user/user.service'
@@ -8,9 +8,10 @@ import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { CaptchaService } from './captcha.service'
 import { LoginLogService } from '@/modules/monitor/login-log/login-log.service'
-import { RedisService } from '@/modules/redis/redis.service'
+import { RedisService, REDIS_CLIENT } from '@/modules/common/redis'
 import { RedisKey } from '@/common/enums'
 import { ClientInfo } from '@/utils/client-info'
+import { convertExpiresInToSeconds } from '@/utils'
 import { config } from '@/config'
 
 @Injectable()
@@ -20,7 +21,7 @@ export class AuthService {
     private jwtService: JwtService,
     private captchaService: CaptchaService,
     private loginLogService: LoginLogService,
-    private readonly redisService: RedisService,
+    @Inject(REDIS_CLIENT) private readonly redisService: RedisService,
   ) {}
 
   async login(loginAuthDto: LoginAuthDto, clientInfo: ClientInfo) {
@@ -50,7 +51,7 @@ export class AuthService {
       ])
 
       // 创建会话数据
-      const sessionData = {
+      const session = {
         ...user,
         ...clientInfo,
         permissions,
@@ -59,34 +60,11 @@ export class AuthService {
 
       // 将会话数据存入 Redis
       const sessionKey = `${RedisKey.USER_SESSION}${user.id}`
-      const jwtConfig = config.jwt
-      // 将 jwt aign 的过期时间字符串转换为秒数
-      const expiresInString = jwtConfig.expiresIn
-      let expiresInSeconds: number
-      const unit = expiresInString.slice(-1)
-      const value = parseInt(expiresInString.slice(0, -1), 10)
-
-      if (isNaN(value)) {
-        expiresInSeconds = parseInt(expiresInString, 10)
-      } else {
-        switch (unit) {
-          case 'd':
-            expiresInSeconds = value * 24 * 3600
-            break
-          case 'h':
-            expiresInSeconds = value * 3600
-            break
-          case 'm':
-            expiresInSeconds = value * 60
-            break
-          default:
-            expiresInSeconds = value
-            break
-        }
-      }
+      // 将 jwt 的过期时间字符串转换为秒数
+      const expiresInSeconds = convertExpiresInToSeconds(config.jwt.expiresIn)
 
       // 使用 access token 的过期时间作为 redis 的过期时间
-      await this.redisService.set(sessionKey, sessionData, expiresInSeconds)
+      await this.redisService.set(sessionKey, session, expiresInSeconds)
 
       // 生成 Token
       return this.generateToken(user)
@@ -207,10 +185,6 @@ export class AuthService {
     try {
       // 验证并解析token
       const payload = await this.verifyToken(token)
-
-      if (!payload || !payload.userId) {
-        throw new ApiException('token无效', ApiErrorCode.SERVER_ERROR)
-      }
 
       // 根据userId获取用户完整信息，包括角色和部门
       const user = await this.userService.findOne(payload.userId)

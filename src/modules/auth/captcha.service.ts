@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common'
-import { RedisService } from '@/modules/redis/redis.service'
+import { Injectable, Inject } from '@nestjs/common'
+import { REDIS_CLIENT, RedisService } from '@/modules/common/redis'
 import { RedisKey } from '@/common/enums'
 import { v4 as uuidv4 } from 'uuid'
 import { generateCaptchaImage, validateCaptchaText } from '@/utils/captcha'
@@ -15,7 +15,10 @@ import type { AppConfig } from '@/config'
 export class CaptchaService {
   private captchaConfig: AppConfig['captcha']
 
-  constructor(private readonly redisService: RedisService) {
+  constructor(
+    @Inject(REDIS_CLIENT)
+    private readonly redisService: RedisService,
+  ) {
     this.captchaConfig = config.captcha
   }
 

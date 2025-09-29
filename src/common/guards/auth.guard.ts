@@ -2,24 +2,18 @@ import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import type { Request } from 'express'
 import { Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { ApiErrorCode, RedisKey } from '@/common/enums'
+import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
-import { RedisService } from '@/modules/redis/redis.service'
-import { AuthService } from '@/modules/auth/auth.service'
 
 interface AuthenticatedRequest extends Request {
-  user?: any
+  session?: any
 }
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private redisService: RedisService,
-    private authService: AuthService,
-  ) {}
+  constructor(private reflector: Reflector) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const request: AuthenticatedRequest = context.switchToHttp().getRequest()
 
     // 获取所需的权限和角色
@@ -40,19 +34,7 @@ export class AuthGuard implements CanActivate {
       return true
     }
 
-    // 从 Redis 获取用户会话信息
-    const authorization = request.headers.authorization
-    const token = authorization?.replace('Bearer ', '')
-
-    // 验证token并获取用户ID
-    const payload = await this.authService.verifyToken(token)
-    if (!payload || !payload.userId) {
-      throw new ApiException('token无效', ApiErrorCode.SERVER_ERROR)
-    }
-
-    // 从 Redis 获取会话信息
-    const sessionKey = `${RedisKey.USER_SESSION}${payload.userId}`
-    const session = await this.redisService.get<any>(sessionKey)
+    const session = request.session
 
     if (!session) {
       throw new ApiException(

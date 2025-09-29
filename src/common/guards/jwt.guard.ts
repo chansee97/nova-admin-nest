@@ -1,23 +1,23 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import type { Request } from 'express'
-import { Injectable, HttpStatus } from '@nestjs/common'
-
-interface AuthenticatedRequest extends Request {
-  user?: any
-}
+import { Injectable, HttpStatus, Inject } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { AuthService } from '@/modules/auth/auth.service'
-import { RedisService } from '@/modules/redis/redis.service'
+import { RedisService, REDIS_CLIENT } from '@/modules/common/redis'
 import { RedisKey } from '@/common/enums'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
+
+interface AuthenticatedRequest extends Request {
+  session?: any
+}
 
 @Injectable()
 export class JwtGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private authService: AuthService,
-    private redisService: RedisService,
+    @Inject(REDIS_CLIENT) private redisService: RedisService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -56,7 +56,7 @@ export class JwtGuard implements CanActivate {
       }
 
       // 将会话中的用户信息附加到请求对象
-      request.user = session.user
+      request.session = session
     } catch (error) {
       console.log('token验证失败:', error)
       throw new ApiException(
