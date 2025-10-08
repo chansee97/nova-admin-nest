@@ -89,8 +89,10 @@ export class UserController {
   @Get()
   @ApiOperation({ summary: '分页查询用户' })
   @RequirePermissions('system:user:list')
-  findAll(@Query() searchQuery: SearchQuery) {
-    return this.userService.findAll(searchQuery)
+  findAll(@Req() request: Request, @Query() searchQuery: SearchQuery) {
+    // 直接将当前会话传入服务层，数据范围服务优先使用会话信息
+    const session = (request as any).session
+    return this.userService.findAll(searchQuery, session)
   }
 
   @Get(':id')

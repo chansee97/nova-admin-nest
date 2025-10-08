@@ -4,17 +4,14 @@ import { Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
-
-interface AuthenticatedRequest extends Request {
-  session?: any
-}
+import { Role } from '../../modules/system/role/entities/role.entity'
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const request: AuthenticatedRequest = context.switchToHttp().getRequest()
+    const request: Request = context.switchToHttp().getRequest<Request>()
 
     // 获取所需的权限和角色
     const requiredPermissions =
@@ -45,25 +42,26 @@ export class AuthGuard implements CanActivate {
 
     const { permissions, roles } = session
 
-    // 检查是否有超级管理员权限
-    const hasSuperAdminPermission =
-      Array.isArray(roles) && roles.includes('admin')
+    // 检查是否有超级管理员权限（兼容 roles 为字符串数组或 Role 实体数组）
+    const hasSuperAdminPermission = roles.some(
+      (role: Role) => role.roleKey === 'admin',
+    )
 
     if (hasSuperAdminPermission) return true
 
     // 检查权限
     let hasRequiredPermissions = true
     if (requiredPermissions.length > 0) {
-      hasRequiredPermissions = requiredPermissions.every(
-        item => Array.isArray(permissions) && permissions.includes(item),
+      hasRequiredPermissions = requiredPermissions.every(item =>
+        permissions.includes(item),
       )
     }
 
-    // 检查角色
+    // 检查角色（兼容 roles 为字符串数组或 Role 实体数组）
     let hasRequiredRoles = true
     if (requiredRoles.length > 0) {
-      hasRequiredRoles = requiredRoles.some(
-        role => Array.isArray(roles) && roles.includes(role),
+      hasRequiredRoles = requiredRoles.some(roleKey =>
+        roles.some((role: Role) => role.roleKey === roleKey),
       )
     }
 

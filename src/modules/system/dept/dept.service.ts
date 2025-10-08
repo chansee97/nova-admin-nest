@@ -8,12 +8,14 @@ import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 import { Dept } from './entities/dept.entity'
 import { buildSelectTree } from '@/utils'
+import { DataScopeService } from '@/modules/auth/data-scope.service'
 
 @Injectable()
 export class DeptService {
   constructor(
     @InjectRepository(Dept)
     private deptRepository: Repository<Dept>,
+    private readonly dataScopeService: DataScopeService,
   ) {}
 
   // 创建部门
@@ -52,9 +54,12 @@ export class DeptService {
   }
 
   // 分页查询部门
-  async findAll(searchQuery: { deptName?: string; status?: number }) {
+  async findAll(
+    searchQuery: { deptName?: string; status?: number },
+    session?: any,
+  ) {
     // 构建查询条件
-    const where: any = {}
+    let where: any = {}
 
     if (searchQuery.deptName) {
       // 使用 LIKE 进行模糊搜索，支持中文
@@ -64,6 +69,9 @@ export class DeptService {
     if (searchQuery.status !== undefined) {
       where.status = searchQuery.status
     }
+
+    // 应用数据范围（方式A：优先使用会话）
+    where = await this.dataScopeService.applyForDeptList(where, session)
 
     const list = await this.deptRepository.find({
       where,
@@ -76,9 +84,16 @@ export class DeptService {
     return list
   }
 
-  async findOptions() {
+  async findOptions(session?: any) {
+    // 只查询正常状态的部门，并应用数据范围
+    const baseWhere: any = { status: 0 }
+    const where = await this.dataScopeService.applyForDeptList(
+      baseWhere,
+      session,
+    )
+
     const depts = await this.deptRepository.find({
-      where: { status: 0 }, // 只查询正常状态的部门
+      where,
       select: ['id', 'deptName', 'parentId'], // 返回需要的字段
       order: {
         sort: 'ASC',

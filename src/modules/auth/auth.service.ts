@@ -219,14 +219,12 @@ export class AuthService {
     try {
       // 验证并解析token
       const payload = await this.verifyToken(token)
-      console.log('token验证成功:', payload)
       if (!payload || !payload.userId) {
         throw new ApiException('token无效', ApiErrorCode.SERVER_ERROR)
       }
 
       // 获取用户的所有菜单
       const menus = await this.userService.findUserMenus(payload.userId)
-      console.log('用户菜单:', menus)
       return menus
     } catch (error) {
       if (error instanceof ApiException) {

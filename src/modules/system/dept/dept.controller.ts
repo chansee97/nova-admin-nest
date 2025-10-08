@@ -11,7 +11,9 @@ import {
   Query,
   HttpCode,
   Patch,
+  Req,
 } from '@nestjs/common'
+import type { Request } from 'express'
 import {
   ApiTags,
   ApiOperation,
@@ -42,14 +44,19 @@ export class DeptController {
   @ApiOperation({ summary: '分页查询部门' })
   @RequirePermissions('system:dept:list')
   @Get()
-  findAll(@Query() query: { deptName?: string; status?: number }) {
-    return this.deptService.findAll(query)
+  findAll(
+    @Req() request: Request,
+    @Query() query: { deptName?: string; status?: number },
+  ) {
+    const session = (request as any).session
+    return this.deptService.findAll(query, session)
   }
 
   @Get('options')
   @ApiOperation({ summary: '部门下拉选项' })
-  findOptions() {
-    return this.deptService.findOptions()
+  findOptions(@Req() request: Request) {
+    const session = (request as any).session
+    return this.deptService.findOptions(session)
   }
 
   @ApiOperation({ summary: '查询部门详情' })

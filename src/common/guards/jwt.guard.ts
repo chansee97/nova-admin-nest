@@ -8,10 +8,6 @@ import { RedisKey } from '@/common/enums'
 import { ApiErrorCode } from '@/common/enums'
 import { ApiException } from '@/common/filters'
 
-interface AuthenticatedRequest extends Request {
-  session?: any
-}
-
 @Injectable()
 export class JwtGuard implements CanActivate {
   constructor(
@@ -29,7 +25,7 @@ export class JwtGuard implements CanActivate {
       return true
     }
 
-    const request: AuthenticatedRequest = context.switchToHttp().getRequest()
+    const request = context.switchToHttp().getRequest()
     const token = this.extractTokenFromHeader(request)
 
     if (!token) {
@@ -45,7 +41,7 @@ export class JwtGuard implements CanActivate {
 
       // 从 Redis 获取会话信息
       const sessionKey = `${RedisKey.USER_SESSION}${userInfo.userId}`
-      const session = await this.redisService.get<any>(sessionKey)
+      const session = await this.redisService.get<Session>(sessionKey)
 
       if (!session) {
         throw new ApiException(
@@ -69,9 +65,7 @@ export class JwtGuard implements CanActivate {
     return true
   }
 
-  private extractTokenFromHeader(
-    request: AuthenticatedRequest,
-  ): string | undefined {
+  private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? []
     return type === 'Bearer' ? token : undefined
   }

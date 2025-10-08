@@ -7,6 +7,7 @@ import { encryptData } from '@/utils/crypto'
 import { Role } from '../role/entities/role.entity'
 import { User } from './entities/user.entity'
 import { Menu } from '../menu/entities/menu.entity'
+import { DataScopeService } from '@/modules/auth/data-scope.service'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { UpdatePasswordDto } from './dto/update-password.dto'
@@ -21,6 +22,7 @@ export class UserService {
     private roleRepository: Repository<Role>,
     @InjectRepository(Menu)
     private menuRepository: Repository<Menu>,
+    private readonly dataScopeService: DataScopeService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -43,6 +45,8 @@ export class UserService {
     }
   }
 
+  // 使用通用数据范围服务
+
   async findAll(
     searchQuery: SearchQuery & {
       deptId?: number
@@ -50,6 +54,7 @@ export class UserService {
       phone?: string
       status?: number
     },
+    session?: any,
   ) {
     // 设置默认分页参数，防止返回所有记录
     const pageNum = searchQuery.pageNum || 1
@@ -77,8 +82,14 @@ export class UserService {
       whereCondition.status = searchQuery.status
     }
 
+    // 应用数据范围过滤（通用服务，方式A：优先使用会话）
+    const scopedWhere = await this.dataScopeService.applyForUserList(
+      whereCondition,
+      session,
+    )
+
     const [list, total] = await this.userRepository.findAndCount({
-      where: whereCondition,
+      where: scopedWhere,
       skip,
       take,
       order: {
@@ -227,19 +238,14 @@ export class UserService {
     }
   }
 
-  async findUserRoles(userId: number): Promise<string[]> {
+  async findUserRoles(userId: number) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['roles'],
     })
     if (user) {
-      const roleKeys = user.roles
-        .filter(role => role.status === 0) // 只获取正常状态的角色
-        .map(role => role.roleKey)
-        .filter(Boolean)
-
-      const uniqueRoleKeys = [...new Set(roleKeys)]
-      return uniqueRoleKeys
+      const roles = user.roles.filter(role => role.status === 0) // 只获取正常状态的角色
+      return roles
     } else {
       return []
     }

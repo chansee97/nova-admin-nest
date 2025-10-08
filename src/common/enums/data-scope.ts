@@ -2,25 +2,25 @@ export enum DataScope {
   /**
    * 全部数据权限
    */
-  DATA_SCOPE_ALL = '1',
+  DATA_SCOPE_ALL = 1,
 
   /**
    * 自定数据权限
    */
-  DATA_SCOPE_CUSTOM = '2',
+  DATA_SCOPE_CUSTOM = 2,
 
   /**
    * 部门数据权限
    */
-  DATA_SCOPE_DEPT = '3',
+  DATA_SCOPE_DEPT = 3,
 
   /**
    * 部门及以下数据权限
    */
-  DATA_SCOPE_DEPT_AND_CHILD = '4',
+  DATA_SCOPE_DEPT_AND_CHILD = 4,
 
   /**
    * 仅本人数据权限
    */
-  DATA_SCOPE_SELF = '5',
+  DATA_SCOPE_SELF = 5,
 }
