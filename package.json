@@ -50,7 +50,6 @@
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.25",
     "ua-parser-js": "^2.0.5",
-    "uuid": "^11.1.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {

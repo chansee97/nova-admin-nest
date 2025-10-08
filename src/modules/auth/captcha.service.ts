@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import { REDIS_CLIENT, RedisService } from '@/modules/common/redis'
 import { RedisKey } from '@/common/enums'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'node:crypto'
 import { generateCaptchaImage, validateCaptchaText } from '@/utils/captcha'
 import { ApiException } from '@/common/filters'
 import { ApiErrorCode } from '@/common/enums'
@@ -46,7 +46,7 @@ export class CaptchaService {
     })
 
     // 使用 UUID 生成唯一ID
-    const captchaId = uuidv4()
+    const captchaId = randomUUID()
 
     // 存储到 Redis，并设置过期时间
     await this.redisService.set(
