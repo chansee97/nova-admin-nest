@@ -9,9 +9,8 @@ export interface ClientInfo {
   loginLocation?: string
 }
 
-// Global Session type composed from entities and client info
-export type Session = UserEntity &
+export type Session = Partial<UserEntity> &
   ClientInfo & {
-    permissions?: string[]
-    roles?: RoleEntity[]
+    permissions: string[]
+    roles: RoleEntity[]
   }

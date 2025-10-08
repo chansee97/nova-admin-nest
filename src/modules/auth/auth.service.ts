@@ -44,30 +44,9 @@ export class AuthService {
         msg: '登录成功',
         ...clientInfo,
       })
-      // 获取用户权限和角色
-      const [permissions, roles] = await Promise.all([
-        this.userService.findUserPermissions(user.id),
-        this.userService.findUserRoles(user.id),
-      ])
-
-      // 创建会话数据
-      const session = {
-        ...user,
-        ...clientInfo,
-        permissions,
-        roles,
-      }
-
-      // 将会话数据存入 Redis
-      const sessionKey = `${RedisKey.USER_SESSION}${user.id}`
-      // 将 jwt 的过期时间字符串转换为秒数
-      const expiresInSeconds = convertExpiresInToSeconds(config.jwt.expiresIn)
-
-      // 使用 access token 的过期时间作为 redis 的过期时间
-      await this.redisService.set(sessionKey, session, expiresInSeconds)
-
-      // 生成 Token
-      return this.generateToken(user)
+      // 生成 token 并持久化会话
+      const token = await this.generateTokenAndStoreSession(user, clientInfo)
+      return token
     } catch (error) {
       await this.loginLogService.create({
         username,
@@ -132,7 +111,7 @@ export class AuthService {
     }
   }
 
-  async refreshToken(refreshToken: string) {
+  async refreshToken(refreshToken: string, clientInfo: ClientInfo) {
     try {
       const jwtConfig = config.jwt
 
@@ -148,7 +127,11 @@ export class AuthService {
       if (payload && payload.userId) {
         const user = await this.userService.findOne(payload.userId)
         if (user) {
-          return this.generateToken(user)
+          const token = await this.generateTokenAndStoreSession(
+            user,
+            clientInfo,
+          )
+          return token
         }
       }
       throw new ApiException('刷新令牌无效', ApiErrorCode.SERVER_ERROR)
@@ -158,17 +141,42 @@ export class AuthService {
   }
 
   /**
+   * 生成访问令牌并使用该令牌作为 Redis 键持久化会话
+   */
+  private async generateTokenAndStoreSession(
+    user: User,
+    clientInfo: ClientInfo,
+  ) {
+    const token = this.generateToken(user)
+    const [permissions, roles] = await Promise.all([
+      this.userService.findUserPermissions(user.id),
+      this.userService.findUserRoles(user.id),
+    ])
+
+    const session: Session = {
+      ...user,
+      ...clientInfo,
+      permissions,
+      roles,
+    }
+
+    const sessionKey = `${RedisKey.USER_TOKEN}${token.accessToken}`
+    const expiresInSeconds = convertExpiresInToSeconds(config.jwt.expiresIn)
+    await this.redisService.set(sessionKey, session, expiresInSeconds)
+
+    return token
+  }
+
+  /**
    * 退出登录
    * @param token 访问令牌
    * @returns 退出结果
    */
   async logout(token: string) {
     try {
-      // 验证token并获取payload
-      const payload = await this.verifyToken(token)
-      if (payload && payload.userId) {
-        await this.redisService.del(`${RedisKey.USER_SESSION}${payload.userId}`)
-      }
+      // 验证token（仅校验合法性），并使用 token 作为 redis 会话键删除
+      await this.verifyToken(token)
+      await this.redisService.del(`${RedisKey.USER_TOKEN}${token}`)
 
       return '退出登录成功'
     } catch {

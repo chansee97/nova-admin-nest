@@ -6,5 +6,5 @@ export enum RedisKey {
   CAPTCHA = 'captcha:',
 
   // 用户会话信息，后跟用户 ID
-  USER_SESSION = 'user_session:',
+  USER_TOKEN = 'user_token:',
 }

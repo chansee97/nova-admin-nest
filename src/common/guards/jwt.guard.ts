@@ -37,10 +37,11 @@ export class JwtGuard implements CanActivate {
     }
 
     try {
-      const userInfo: any = await this.authService.verifyToken(token)
+      // 验证 token 合法性
+      await this.authService.verifyToken(token)
 
-      // 从 Redis 获取会话信息
-      const sessionKey = `${RedisKey.USER_SESSION}${userInfo.userId}`
+      // 从 Redis 获取会话信息（以 access token 作为会话键）
+      const sessionKey = `${RedisKey.USER_TOKEN}${token}`
       const session = await this.redisService.get<Session>(sessionKey)
 
       if (!session) {
@@ -53,8 +54,7 @@ export class JwtGuard implements CanActivate {
 
       // 将会话中的用户信息附加到请求对象
       request.session = session
-    } catch (error) {
-      console.log('token验证失败:', error)
+    } catch {
       throw new ApiException(
         'token验证失败',
         ApiErrorCode.SERVER_ERROR,
