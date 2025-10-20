@@ -70,7 +70,7 @@ export class DeptService {
       where.status = searchQuery.status
     }
 
-    // 应用数据范围（方式A：优先使用会话）
+    // 应用数据范围
     where = await this.dataScopeService.applyForDeptList(where, session)
 
     const list = await this.deptRepository.find({

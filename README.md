@@ -154,25 +154,6 @@ pnpm run lint
 pnpm run format
 ```
 
-## 📖 开发指南
-
-### 🔧 添加新模块
-
-1. 创建模块目录结构：
-
-```bash
-src/modules/your-module/
-├── entities/               # 实体定义
-├── dto/                    # 数据传输对象
-├── your-module.controller.ts
-├── your-module.service.ts
-└── your-module.module.ts
-```
-
-2. 在 `app.module.ts` 中注册模块
-
-3. 添加相应的权限与菜单配置（按需使用 `@Permissions()` 装饰器）
-
 ### 🎯 权限控制
 
 项目提供统一的权限装饰器（从 `src/common/decorators` 导入）：
@@ -222,6 +203,172 @@ export class UserController {
   assign() {
     return 'ok'
   }
+}
+```
+
+### 📊 数据范围权限
+
+项目支持基于部门的数据范围权限控制，实现不同角色对数据的访问隔离。
+
+#### 数据范围类型
+
+系统支持以下几种数据范围：
+
+- **全部数据权限**：可以访问所有数据
+- **自定数据权限**：只能访问指定部门及其子部门的数据
+- **部门数据权限**：只能访问本部门的数据
+- **部门及以下数据权限**：可以访问本部门及其子部门的数据
+- **仅本人数据权限**：只能访问自己创建的数据
+
+#### 配置方式
+
+1. **角色配置**：在角色管理中为角色分配数据范围类型
+2. **部门关联**：通过 `sys_role_dept` 表关联角色与可访问的部门
+
+#### 使用示例
+
+在需要数据权限控制的 Service 中使用：
+
+```ts
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { User } from './entities/user.entity'
+import { Dept } from './entities/dept.entity'
+import { DataScopeService } from '@/modules/auth/data-scope.service'
+import { Session } from '@/types/session'
+
+@Injectable()
+export class UserService {
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private dataScopeService: DataScopeService,
+  ) {}
+
+  // 用户列表查询 - 应用数据范围过滤
+  async findAll(baseWhere: any = {}, session: Session) {
+    const whereCondition = await this.dataScopeService.applyForUserList(
+      baseWhere,
+      session,
+    )
+
+    return this.userRepository.find({
+      where: whereCondition,
+      relations: ['dept', 'roles'],
+    })
+  }
+}
+
+@Injectable()
+export class DeptService {
+  constructor(
+    @InjectRepository(Dept)
+    private deptRepository: Repository<Dept>,
+    private dataScopeService: DataScopeService,
+  ) {}
+
+  // 部门列表查询 - 应用数据范围过滤
+  async findAll(baseWhere: any = {}, session: Session) {
+    const whereCondition = await this.dataScopeService.applyForDeptList(
+      baseWhere,
+      session,
+    )
+
+    return this.deptRepository.find({
+      where: whereCondition,
+      order: { orderNum: 'ASC' },
+    })
+  }
+}
+```
+
+#### Controller 中的使用
+
+```ts
+import { Controller, Get, Req } from '@nestjs/common'
+import { Request } from 'express'
+import { UserService } from './user.service'
+
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Get('list')
+  async findAll(@Req() req: Request) {
+    const session = req.session as Session
+    return this.userService.findAll({}, session)
+  }
+}
+```
+
+#### 新业务模块数据范围支持
+
+如果要开发支持数据范围筛选的新业务模块，业务表需要预留以下字段：
+
+```sql
+-- 业务表示例（如：项目表、订单表等）
+CREATE TABLE business_table (
+  id INTEGER PRIMARY KEY,
+
+  -- 必需字段：支持数据范围筛选
+  create_user_id INTEGER,              -- 创建用户ID（支持"仅本人数据权限"）
+  dept_id INTEGER,                     -- 所属部门ID（支持部门级数据权限）
+
+  -- 业务字段
+  name VARCHAR(100),
+  status SMALLINT DEFAULT 0,
+  create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  -- 其他业务字段...
+
+  -- 外键约束
+  FOREIGN KEY (create_user_id) REFERENCES sys_user(id),
+  FOREIGN KEY (dept_id) REFERENCES sys_dept(id)
+);
+```
+
+**字段说明**：
+
+- `create_user_id`：创建者用户ID，用于"仅本人数据权限"过滤
+- `dept_id`：所属部门ID，用于部门级数据权限过滤
+
+**使用方式**：
+
+```ts
+// 在业务 Service 中应用数据范围
+async findBusinessData(baseWhere: any = {}, session: Session) {
+  // 方式1：通过用户关联查询（适用于有创建者的业务数据）
+  const userWhereCondition = await this.dataScopeService.applyForUserList(
+    {},
+    session
+  )
+  
+  // 先查询允许访问的用户ID列表
+  const allowedUsers = await this.userRepository.find({
+    where: userWhereCondition,
+    select: ['id']
+  })
+  const allowedUserIds = allowedUsers.map(user => user.id)
+
+  // 方式2：通过部门关联查询（推荐）
+  const deptWhereCondition = await this.dataScopeService.applyForDeptList(
+    {},
+    session
+  )
+  
+  const allowedDepts = await this.deptRepository.find({
+    where: deptWhereCondition,
+    select: ['id']
+  })
+  const allowedDeptIds = allowedDepts.map(dept => dept.id)
+
+  // 最终业务数据查询
+  return this.businessRepository.find({
+    where: [
+      { ...baseWhere, createUserId: In(allowedUserIds) },  // 创建者筛选
+      { ...baseWhere, deptId: In(allowedDeptIds) }         // 部门筛选
+    ]
+  })
 }
 ```
 

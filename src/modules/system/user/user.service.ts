@@ -82,7 +82,7 @@ export class UserService {
       whereCondition.status = searchQuery.status
     }
 
-    // 应用数据范围过滤（通用服务，方式A：优先使用会话）
+    // 应用数据范围过滤
     const scopedWhere = await this.dataScopeService.applyForUserList(
       whereCondition,
       session,

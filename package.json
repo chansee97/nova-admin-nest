@@ -1,6 +1,6 @@
 {
   "name": "nova-admin-nest",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "基于nestjs的基本后台管理系统",
   "author": "Rock Chen",
   "license": "MIT",
