@@ -88,6 +88,8 @@ src/
 
 启动项目后访问：[`http://localhost:3000/api-docs`](http://localhost:3000/api-docs)
 
+在线文档：[Nova Nest](https://nova-nest.apifox.cn)
+
 ## 🚀 快速开始
 
 ### 📋 环境要求
@@ -342,7 +344,7 @@ async findBusinessData(baseWhere: any = {}, session: Session) {
     {},
     session
   )
-  
+
   // 先查询允许访问的用户ID列表
   const allowedUsers = await this.userRepository.find({
     where: userWhereCondition,
@@ -355,7 +357,7 @@ async findBusinessData(baseWhere: any = {}, session: Session) {
     {},
     session
   )
-  
+
   const allowedDepts = await this.deptRepository.find({
     where: deptWhereCondition,
     select: ['id']
