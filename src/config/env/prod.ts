@@ -8,7 +8,7 @@ const productionConfig: AppConfig = {
   },
   database: {
     type: 'postgres',
-    host: '192.168.80.128',
+    host: 'localhost',
     port: 5432,
     username: 'root',
     password: '123456',

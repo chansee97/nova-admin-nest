@@ -8,11 +8,11 @@ const developmentConfig: AppConfig = {
   },
   database: {
     type: 'postgres',
-    host: '127.0.0.1',
+    host: 'localhost',
     port: 5432,
     username: 'root',
     password: 'postgres',
-    database: 'nova_db',
+    database: 'nova2',
     synchronize: true,
     autoLoadEntities: true,
     logging: ['error', 'warn'],

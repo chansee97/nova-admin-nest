@@ -15,10 +15,7 @@ import {
 } from '@nestjs/core'
 import { ValidationPipe, Logger } from '@nestjs/common'
 import { JwtGuard, AuthGuard } from '@/common/guards'
-import {
-  GlobalInterceptor,
-  OperationLogInterceptor,
-} from '@/common/interceptors'
+import { GlobalInterceptor } from '@/common/interceptors'
 import { HttpExceptionFilter, ApiExceptionsFilter } from '@/common/filters'
 import {
   WinstonModule,
@@ -58,10 +55,6 @@ import * as winston from 'winston'
   ],
   controllers: [AppController],
   providers: [
-    {
-      provide: 'APP_INTERCEPTOR',
-      useClass: OperationLogInterceptor,
-    },
     // 供依赖注入使用的 Logger（由 nest-winston 接管）
     Logger,
     // 全局验证管道：自动验证所有进入的请求的数据

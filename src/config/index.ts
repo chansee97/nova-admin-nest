@@ -1,7 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm'
 import { RedisOptions } from 'ioredis'
 import config from './config'
-
+import type { StringValue } from 'ms'
 export { config }
 
 export interface AppConfig {
@@ -12,8 +12,8 @@ export interface AppConfig {
   database: TypeOrmModuleOptions
   jwt: {
     secret: string
-    expiresIn: string
-    refreshExpiresIn: string
+    expiresIn: StringValue
+    refreshExpiresIn: StringValue
     enableRefreshToken: boolean
   }
   captcha: {
